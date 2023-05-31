@@ -1,0 +1,79 @@
+name: 1. Check Requirements
+run-name: Check Requirements
+
+on:
+  workflow_dispatch:
+    inputs:
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+  BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+  BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+
+jobs:
+  check_cloudflare_api_token:
+    runs-on: ubuntu-latest
+    name: Has Secret CLOUDFLARE_API_TOKEN
+    steps:
+      - run: |
+          if [ -n "${CLOUDFLARE_API_TOKEN}" ]; then
+              echo "Verifying CLOUDFLARE_API_TOKEN secret..."
+              curl -f -X GET "https://api.cloudflare.com/client/v4/user/tokens/verify" \
+                  -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+                  -H "Content-Type:application/json"
+              echo "Done"
+          else
+              echo "The CLOUDFLARE_API_TOKEN secret needs to be set."
+              echo "Create a new token here: https://dash.cloudflare.com/profile/api-tokens"
+              exit 1
+          fi
+  check_cloudflare_worker_name:
+    runs-on: ubuntu-latest
+    name: Has Variable CLOUDFLARE_WORKER_NAME
+    steps:
+      - run: |
+          if [ -n "${CLOUDFLARE_WORKER_NAME}" ]; then
+              echo "CLOUDFLARE_WORKER_NAME is set."
+          else
+              echo "The CLOUDFLARE_WORKER_NAME variable needs to be set."
+              echo "Go to this repository's Settings > Secrets and variables > Variables."
+              exit 1
+          fi
+  check_cloudflare_account_id:
+    runs-on: ubuntu-latest
+    name: Has Variable CLOUDFLARE_ACCOUNT_ID
+    steps:
+      - run: |
+          if [ -n "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+              echo "CLOUDFLARE_ACCOUNT_ID is set."
+          else
+              echo "The CLOUDFLARE_ACCOUNT_ID variable needs to be set."
+              echo "Go to this repository's Settings > Secrets and variables > Variables."
+              exit 1
+          fi
+  check_bluesky_handle:
+    runs-on: ubuntu-latest
+    name: Has Variable BLUESKY_HANDLE
+    steps:
+      - run: |
+          if [ -n "${BLUESKY_HANDLE}" ]; then
+              echo "BLUESKY_HANDLE is set."
+          else
+              echo "The BLUESKY_HANDLE variable needs to be set."
+              echo "Go to this repository's Settings > Secrets and variables > Variables."
+              exit 1
+          fi
+  check_bluesky_app_password:
+    runs-on: ubuntu-latest
+    name: Has Secret BLUESKY_APP_PASSWORD
+    steps:
+      - run: |
+          if [ -n "${BLUESKY_APP_PASSWORD}" ]; then
+              echo "BLUESKY_APP_PASSWORD is set."
+          else
+              echo "The BLUESKY_APP_PASSWORD variable needs to be set."
+              echo "Go to this repository's Settings > Secrets and variables > Variables."
+              exit 1
+          fi

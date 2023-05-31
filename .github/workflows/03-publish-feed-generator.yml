@@ -1,0 +1,42 @@
+name: 3. Publish Feed Generator
+run-name: Publish Feed Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CLOUDFLARE_WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+  BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+
+jobs:
+  publish_feed_generator:
+    runs-on: ubuntu-latest
+    name: Publish Feed
+    steps:
+      - name: Get Cloudflare Worker Subdomain
+        run: |
+          set -o pipefail;
+          tmp=$(mktemp);
+          curl -f \
+              --request GET \
+              --url "https://api.cloudflare.com/client/v4/accounts/${{ env.CLOUDFLARE_ACCOUNT_ID }}/workers/subdomain" \
+              --header 'Content-Type: application/json' \
+              --header 'Authorization: Bearer ${{ env.CLOUDFLARE_API_TOKEN }}' \
+              | jq -r '.result.subdomain' > $tmp
+          export CLOUDFLARE_WORKERS_SUBDOMAIN="$(cat $tmp)"
+          echo "FEEDGEN_HOSTNAME=${CLOUDFLARE_WORKER_NAME}.${CLOUDFLARE_WORKERS_SUBDOMAIN}.workers.dev" >> "$GITHUB_ENV"
+      - uses: actions/checkout@v3
+      - name: Render Config
+        run: |
+          python render-config.py
+      - uses: actions/setup-node@v3
+      - name: Publish Feed Generator
+        run: |
+          cd feed-generator/
+          npm install
+          env | grep -E 'FEEDGEN'
+          yarn publishFeedGenerator
