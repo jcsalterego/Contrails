@@ -39,6 +39,38 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 
 [INSTALL.md](INSTALL.md) `under-construction.gif`
 
+## Publishing Diagram
+
+```mermaid
+flowchart LR
+    subgraph Bluesky
+        PDS["PDS"]
+    end
+    subgraph GitHub
+        subgraph MD_Config["CONFIG.md"]
+            searchTerms
+        end
+        subgraph CloudflareDeploy["Cloudflare Deploy"]
+            Worker_JS
+            CloudflareApiToken("CLOUDFLARE_API_TOKEN")
+            CloudflareAccountID("CLOUDFLARE_ACCOUNT_ID")
+            CloudflareWorkerName("CLOUDFLARE_WORKER_NAME")
+        end
+        subgraph BlueskyDeploy["Bluesky Deploy"]
+            PublishFeedGenerator
+            BlueskyHandle("BLUESKY_HANDLE")
+            BlueskyAppPassword("BLUESKY_APP_PASSWORD")
+        end
+        MD_Config --> Worker_JS["worker.js"]
+        MD_Config --> PublishFeedGenerator["publishFeedGenerator.ts"]
+    end
+    subgraph "Cloudflare Worker"
+        CloudflareWorker[worker.js]
+    end
+    CloudflareDeploy -->|Deploy to Cloudflare| CloudflareWorker
+    BlueskyDeploy -->|Publish Feed Generator| PDS
+```
+
 ## LICENSE
 
 [2-Clause BSD](LICENSE)
