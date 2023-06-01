@@ -12,6 +12,8 @@ Deploy right from [GitHub Actions](https://github.com/features/actions).
 
 ![](docs/thecloud.png)
 
+_[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar](https://github.com/bluesky-social/indigo/tree/main/cmd/palomar). RIP thecloud, we hardly knew ye.
+
 ## Requirements
 
 - Bluesky Social account
