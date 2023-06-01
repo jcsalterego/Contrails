@@ -71,6 +71,22 @@ flowchart LR
     BlueskyDeploy -->|Publish Feed Generator| PDS
 ```
 
+## Query Diagram
+
+```mermaid
+sequenceDiagram
+    actor CoffeeTeaLover
+    participant Bluesky
+    participant Cloudflare as Cloudflare Worker
+    participant Bluesky Search
+    CoffeeTeaLover->>+Bluesky: get Coffee&Tea custom feed
+    Bluesky->>+Cloudflare: get Coffee&Tea custom feed
+    Cloudflare->>+Bluesky Search: search "coffee" and "tea"
+    Bluesky Search->>+Cloudflare: posts matching "coffee" and "tea"
+    Cloudflare->>+Bluesky: IDs of posts matching "coffee" and "tea"
+    Bluesky->>+CoffeeTeaLover: posts for Coffee&Tea custom feed
+```
+
 ## LICENSE
 
 [2-Clause BSD](LICENSE)
