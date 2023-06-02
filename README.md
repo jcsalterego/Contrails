@@ -27,13 +27,16 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 2. Create a Cloudflare API Token (the Edit Workers template is fine)
 3. Create a Bluesky App Password
 4. Fork this repository
-5. Set the following in your fork:
-  * Variables: `BLUESKY_HANDLE`, `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_WORKER_NAME`
-  * Secrets: `BLUESKY_APP_PASSWORD`, `CLOUDFLARE_API_TOKEN`
+5. In your fork's **Settings > Secrets and variables > Actions**, set the following:
+  * Variable: `BLUESKY_HANDLE`
+  * Variable: `CLOUDFLARE_ACCOUNT_ID`
+  * Variable: `CLOUDFLARE_WORKER_NAME`
+  * Secret: `BLUESKY_APP_PASSWORD`
+  * Secret: `CLOUDFLARE_API_TOKEN`
 6. Edit [CONFIG.md](CONFIG.md) in your fork
-7. Run **Check Requirements** GitHub Action in your fork
-8. Run **Deploy to Cloudflare** GitHub Action in your fork
-9. Run **Publish Feed Generator** GitHub Action in your fork
+7. Go to **Actions** > **1. Check Requirements**, select **Run Workflow**, refresh and wait for completion
+8. Go to **Actions** > **2. Deploy to Cloudflare**, select **Run Workflow**, refresh and wait for completion
+9. Go to **Actions** > **3. Publish Feed Generator**, select **Run Workflow**, refresh and wait for completion
 
 ## Installation & Configuration: Director's Cut
 
