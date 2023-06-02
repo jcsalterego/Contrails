@@ -37,6 +37,8 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 
 ## Installation & Configuration: Director's Cut
 
+Here is the currently incomplete, long unabridged version of Installation and Configuration:
+
 [INSTALL.md](INSTALL.md) `under-construction.gif`
 
 ## Publishing Diagram
