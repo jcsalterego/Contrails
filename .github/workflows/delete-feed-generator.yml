@@ -25,4 +25,4 @@ jobs:
           cd feed-generator/
           npm install
           echo ${RECORD_NAME}
-          # yarn deleteFeedGenerator
+          yarn deleteFeedGenerator
