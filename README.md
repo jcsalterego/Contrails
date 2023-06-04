@@ -25,6 +25,8 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 
 ## Changelog
 
+### 0.0.3-pre
+
 ### 0.0.2
 
 * Delete Feed Generator workflow
