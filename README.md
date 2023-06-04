@@ -8,6 +8,8 @@ Edit `CONFIG.md` to define your feed generator.
 
 Deploy right from [GitHub Actions](https://github.com/features/actions).
 
+The current release is [**0.0.1**](https://github.com/jcsalterego/Contrails/releases/latest).
+
 ## A Post
 
 ![](docs/thecloud.png)
@@ -20,6 +22,14 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 - GitHub account ([Sign up](https://github.com/signup) or [Login](https://github.com/login))
 - Cloudflare account ([Sign up](https://dash.cloudflare.com/sign-up) or [Login](https://dash.cloudflare.com/login/))
 - A moderate-to-high tolerance for adventure
+
+## Changelog
+
+### 0.0.2-pre
+
+### 0.0.1
+
+* Initial Release
 
 ## Installation & Configuration: The Short Version
 
