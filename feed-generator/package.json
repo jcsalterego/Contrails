@@ -9,7 +9,7 @@
   "license": "MIT",
   "scripts": {
     "publishFeedGenerator": "ts-node publishFeedGenerator.ts",
-    "deleteFeed": "ts-node deleteFeed.ts"
+    "deleteFeedGenerator": "ts-node deleteFeedGenerator.ts"
   },
   "dependencies": {
     "@atproto/api": "^0.3.7",
