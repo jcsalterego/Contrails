@@ -8,7 +8,7 @@ Edit `CONFIG.md` to define your feed generator.
 
 Deploy right from [GitHub Actions](https://github.com/features/actions).
 
-The current release is [**0.0.1**](https://github.com/jcsalterego/Contrails/releases/latest).
+The current release is [**0.0.2**](https://github.com/jcsalterego/Contrails/releases/latest).
 
 ## A Post
 
@@ -25,7 +25,9 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 
 ## Changelog
 
-### 0.0.2-pre
+### 0.0.2
+
+* Delete Feed Generator workflow
 
 ### 0.0.1
 
