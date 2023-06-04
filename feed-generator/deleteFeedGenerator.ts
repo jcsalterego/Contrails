@@ -28,7 +28,8 @@ const run = async () => {
   let recordJSON = JSON.stringify(record, null, 2);
   console.log(`Deleting record ${recordJSON}`)
   let response = await agent.api.com.atproto.repo.deleteRecord(record);
-  console.log(`Result ${response}`)
+  let responseJSON = JSON.stringify(response, null, 2);
+  console.log(`Response: ${responseJSON}`)
 }
 
 run()
