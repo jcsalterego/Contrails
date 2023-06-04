@@ -15,7 +15,7 @@ env:
 jobs:
   publish_feed_generator:
     runs-on: ubuntu-latest
-    name: Publish Feed
+    name: Publish Feed Generator
     steps:
       - name: Get Cloudflare Worker Subdomain
         run: |
