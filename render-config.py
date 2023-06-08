@@ -15,7 +15,11 @@ def parse_config(markdown_contents):
 
         lines = section.split("\n")
         section = lines[0]
-        lines = [line for line in lines[1:] if line]
+
+        # starting with the second line,
+        # - ignore empty lines
+        # - ignore blockquotes
+        lines = [line for line in lines[1:] if line and not line.startswith(">")]
 
         config[section] = lines
 
