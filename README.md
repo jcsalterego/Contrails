@@ -23,6 +23,11 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 - Cloudflare account ([Sign up](https://dash.cloudflare.com/sign-up) or [Login](https://dash.cloudflare.com/login/))
 - A moderate-to-high tolerance for adventure
 
+## Upgrading
+
+In the event you'd like to pull in the latest changes into a fork of Contrails, GitHub has great documentation here:
+[GitHub Docs: Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)
+
 ## Changelog
 
 ### 0.0.4-pre
