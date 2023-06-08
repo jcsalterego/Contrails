@@ -10,10 +10,12 @@
       "red pandas",
       "quokkas"
     ],
-    "avatar": "avatar.png"
+    "avatar": "avatar.png",
+    "isEnabled": true
   },
   "science-emojis": {
     "recordName": "science-emojis",
+    "isEnabled": false,
     "displayName": "Science Emojis",
     "description": "Posts with \ud83e\uddea\ud83e\udd7c\ud83d\udd2d",
     "searchTerms": [
@@ -21,10 +23,11 @@
       "\ud83e\udd7c",
       "\ud83d\udd2d"
     ],
-    "avatar": "avatar.png"
+    "avatar": "configs/avatar2.png"
   },
   "gaming-emojis": {
     "recordName": "gaming-emojis",
+    "isEnabled": false,
     "displayName": "Gaming Emojis",
     "description": "Posts with \ud83d\udc7e\ud83c\udfae\ud83d\udd79\ufe0f",
     "searchTerms": [
@@ -32,15 +35,16 @@
       "\ud83c\udfae",
       "\ud83d\udd79\ufe0f"
     ],
-    "avatar": "avatar.png"
+    "avatar": "configs/avatar2.png"
   },
   "basketball-emoj": {
     "recordName": "basketball-emoj",
+    "isEnabled": false,
     "displayName": "Basketball Emojis",
     "description": "Posts with \ud83c\udfc0",
     "searchTerms": [
       "\ud83c\udfc0"
     ],
-    "avatar": "avatar.png"
+    "avatar": "configs/avatar2.png"
   }
 }

@@ -1,12 +1,13 @@
-#!/usr/bin/env python3
-
+#!/usr/bin/env python
+import glob
 import json
+import os
 import re
 
-WORKER_SENTINEL = "\n\n// CONFIG\n\n"
+WORKER_SENTINEL = "\n\n// CONFIGS\n\n"
 
 
-def parse_config(markdown_contents):
+def parse_config(dirname, markdown_contents):
     config = {}
     sections = markdown_contents.split("\n# ")
     for section in sections:
@@ -33,7 +34,7 @@ def parse_config(markdown_contents):
     if "avatar" in config:
         matches = re.compile("^.*\((.+)\)$").match(config["avatar"])
         if matches:
-            config["avatar"] = matches.group(1)
+            config["avatar"] = os.path.join(dirname, matches.group(1))
     if "recordName" in config:
         record_name = config["recordName"]
         record_name = record_name.replace(" ", "").lower()
@@ -44,15 +45,21 @@ def parse_config(markdown_contents):
         display_name = display_name[0:24]
         config["displayName"] = display_name
 
+    if "isEnabled" in config:
+        config["isEnabled"] = (config["isEnabled"].lower() == "true")
+    else:
+        # for legacy support, if the section is missing, set to True
+        config["isEnabled"] = True
+
     return config
 
 
-def save_json_config(json_path, config):
+def save_json_configs(json_path, configs):
     with open(json_path, "w") as f:
-        json.dump(config, f, indent=2)
+        json.dump(configs, f, indent=2)
 
 
-def replace_json_config(worker_js_path, config):
+def replace_json_configs(worker_js_path, configs):
     with open(worker_js_path, "r") as f:
         contents = f.read()
     sections = contents.split(WORKER_SENTINEL)
@@ -63,7 +70,7 @@ def replace_json_config(worker_js_path, config):
         [
             sections[0],
             WORKER_SENTINEL,
-            "const CONFIG = " + json.dumps(config, indent=2),
+            "const CONFIGS = " + json.dumps(configs, indent=2),
             "\n",
         ]
     )
@@ -73,10 +80,15 @@ def replace_json_config(worker_js_path, config):
 
 
 def main():
-    with open("CONFIG.md", "r") as f:
-        config = parse_config(f.read())
-    save_json_config("feed-generator/config.json", config)
-    replace_json_config("cloudflare-worker/worker.js", config)
+    configs = {}
+    paths = ["CONFIG.md"] + glob.glob("configs/*.md")
+    for path in paths:
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                config = parse_config(os.path.dirname(path), f.read())
+                configs[config["recordName"]] = config
 
+    save_json_configs("feed-generator/configs.json", configs)
+    replace_json_configs("cloudflare-worker/worker.js", configs)
 
 main()

@@ -1,6 +1,7 @@
 
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
+const DEFAULT_LIMIT = 40;
 
 const DID_JSON = {
   "@context": ["https://www.w3.org/ns/did/v1"],
@@ -36,7 +37,27 @@ function jsonResponse(obj) {
 }
 
 async function getFeedSkeleton(request) {
-  let searchTerms = CONFIG.searchTerms.slice(0, MAX_SEARCH_TERMS);
+  let url = new URL(request.url);
+  let feedAtUrl = url.searchParams.get("feed");
+  if (feedAtUrl === null) {
+    console.warn(`feed parameter missing from query string`);
+    return feedJsonResponse([]);
+  }
+  let words = feedAtUrl.split("/");
+  let feedId = words[words.length - 1];
+  let config = CONFIGS[feedId];
+
+  if (config === undefined) {
+    console.warn(`Could not find Feed ID ${feedId}`);
+    return feedJsonResponse([]);
+  }
+
+  let limit = parseInt(url.searchParams.get("limit"));
+  if (limit === null || limit === undefined || limit < 1) {
+    limit = DEFAULT_LIMIT;
+  }
+
+  let searchTerms = config.searchTerms.slice(0, MAX_SEARCH_TERMS);
   let responsePromises = [];
 
   for (let searchTerm of searchTerms) {
@@ -64,14 +85,18 @@ async function getFeedSkeleton(request) {
   }
 
   timestampURLs = timestampURLs.toSorted((b, a) => (a === b) ? 0 : (a < b) ? -1 : 1);
-
-  let rv = { feed: [] };
+  var feed = [];
   for (let timestampUrl of timestampURLs) {
     let atUrl = timestampUrl[1];
-    rv.feed.push({ post : atUrl });
+    feed.push({ post : atUrl });
   }
+  // TODO apply this after adding pagination support
+  // feed = feed.slice(0, limit);
+  return feedJsonResponse(feed);
+}
 
-  return jsonResponse(rv);
+function feedJsonResponse(items) {
+  return jsonResponse({ feed: items });
 }
 
 export default {
@@ -88,18 +113,55 @@ export default {
   },
 };
 
-// CONFIG
+// CONFIGS
 
-const CONFIG = {
-  "recordName": "emotional-suppo",
-  "displayName": "Emotional Support Pets",
-  "description": "Cute animals feed",
-  "searchTerms": [
-    "cats",
-    "dogs",
-    "penguins",
-    "red pandas",
-    "quokkas"
-  ],
-  "avatar": "avatar.png"
+const CONFIGS = {
+  "emotional-suppo": {
+    "recordName": "emotional-suppo",
+    "displayName": "Emotional Support Pets",
+    "description": "Cute animals feed",
+    "searchTerms": [
+      "cats",
+      "dogs",
+      "penguins",
+      "red pandas",
+      "quokkas"
+    ],
+    "avatar": "avatar.png",
+    "isEnabled": true
+  },
+  "science-emojis": {
+    "recordName": "science-emojis",
+    "isEnabled": false,
+    "displayName": "Science Emojis",
+    "description": "Posts with \ud83e\uddea\ud83e\udd7c\ud83d\udd2d",
+    "searchTerms": [
+      "\ud83e\uddea",
+      "\ud83e\udd7c",
+      "\ud83d\udd2d"
+    ],
+    "avatar": "configs/avatar2.png"
+  },
+  "gaming-emojis": {
+    "recordName": "gaming-emojis",
+    "isEnabled": false,
+    "displayName": "Gaming Emojis",
+    "description": "Posts with \ud83d\udc7e\ud83c\udfae\ud83d\udd79\ufe0f",
+    "searchTerms": [
+      "\ud83d\udc7e",
+      "\ud83c\udfae",
+      "\ud83d\udd79\ufe0f"
+    ],
+    "avatar": "configs/avatar2.png"
+  },
+  "basketball-emoj": {
+    "recordName": "basketball-emoj",
+    "isEnabled": false,
+    "displayName": "Basketball Emojis",
+    "description": "Posts with \ud83c\udfc0",
+    "searchTerms": [
+      "\ud83c\udfc0"
+    ],
+    "avatar": "configs/avatar2.png"
+  }
 }

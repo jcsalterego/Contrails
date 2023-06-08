@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Render Config
         run: |
-          python render-config.py
+          python render-configs.py
       - name: Deploy Cloudflare Worker
         uses: cloudflare/wrangler-action@2.0.0
         with:

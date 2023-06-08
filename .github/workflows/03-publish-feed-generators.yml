@@ -1,5 +1,5 @@
-name: 3. Publish Feed Generator
-run-name: Publish Feed Generator
+name: 3. Publish Feed Generators
+run-name: Publish Feed Generators
 
 on:
   workflow_dispatch:
@@ -13,9 +13,9 @@ env:
   BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
 
 jobs:
-  publish_feed_generator:
+  publish_feed_generators:
     runs-on: ubuntu-latest
-    name: Publish Feed Generator
+    name: Publish Feed Generators
     steps:
       - name: Get Cloudflare Worker Subdomain
         run: |
@@ -32,11 +32,11 @@ jobs:
       - uses: actions/checkout@v3
       - name: Render Config
         run: |
-          python render-config.py
+          python render-configs.py
       - uses: actions/setup-node@v3
-      - name: Publish Feed Generator
+      - name: Publish Feed Generators
         run: |
           cd feed-generator/
           npm install
           env | grep -E 'FEEDGEN'
-          yarn publishFeedGenerator
+          yarn publishFeedGenerators

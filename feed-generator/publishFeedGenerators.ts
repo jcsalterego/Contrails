@@ -1,25 +1,14 @@
 import dotenv from 'dotenv'
 import { AtpAgent, BlobRef } from '@atproto/api'
 import fs from 'fs/promises'
+import path from 'path'
 
-const run = async () => {
+const publishAll = async () => {
   dotenv.config()
-  let config = require("./config.json");
+
+  // login
   const handle = `${process.env.BLUESKY_HANDLE}`
   const password = `${process.env.BLUESKY_APP_PASSWORD}`
-  const recordName = config.recordName;
-  const displayName = config.displayName;
-  const description = config.description;
-  const avatar: string = config.avatar;
-
-  // -------------------------------------
-  // NO NEED TO TOUCH ANYTHING BELOW HERE
-  // -------------------------------------
-
-  const feedGenDid = `did:web:${process.env.FEEDGEN_HOSTNAME}`
-  console.log(`did:web:${process.env.FEEDGEN_HOSTNAME}`)
-
-  // only update this if in a test environment
   const agent = new AtpAgent({ service: 'https://bsky.social' })
   await agent.login({ identifier: handle, password })
 
@@ -31,6 +20,27 @@ const run = async () => {
     )
   }
 
+  let configs = require("./configs.json")
+  for (let configName in configs) {
+    let config = configs[configName]
+    await publishSingle(agent, configName, config)
+  }
+}
+
+const publishSingle = async (agent: AtpAgent, configName: string, config: any) => {
+  const recordName = config.recordName
+  const displayName = config.displayName
+  const description = config.description
+  const avatar: string = config.avatar
+  const isEnabled = config.isEnabled
+
+  if (isEnabled === false) {
+    console.log(`Skipping ${recordName} because isEnabled is set to false`)
+    return
+  }
+
+  const feedGenDid = `did:web:${process.env.FEEDGEN_HOSTNAME}`
+
   let avatarRef: BlobRef | undefined
   if (avatar) {
     let encoding: string
@@ -41,7 +51,7 @@ const run = async () => {
     } else {
       throw new Error('expected png or jpeg')
     }
-    const img = await fs.readFile(avatar)
+    const img = await fs.readFile(path.join('..', avatar))
     const blobRes = await agent.api.com.atproto.repo.uploadBlob(img, {
       encoding,
     })
@@ -60,9 +70,9 @@ const run = async () => {
       createdAt: new Date().toISOString(),
     },
   }
-  console.log(JSON.stringify(record, null, 2));
-  await agent.api.com.atproto.repo.putRecord(record);
+  console.log(JSON.stringify(record, null, 2))
+  await agent.api.com.atproto.repo.putRecord(record)
   console.log('All done 🎉')
 }
 
-run()
+publishAll()

@@ -8,7 +8,7 @@
   "author": "dholms <dtholmgren@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "publishFeedGenerator": "ts-node publishFeedGenerator.ts",
+    "publishFeedGenerators": "ts-node publishFeedGenerators.ts",
     "deleteFeedGenerator": "ts-node deleteFeedGenerator.ts"
   },
   "dependencies": {
