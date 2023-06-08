@@ -25,8 +25,9 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 
 ## Changelog
 
-### 0.0.3-pre
+### 0.0.3
 
+* Multiple feed support
 * Ignore blockquotes in CONFIG.md (to allow comments).
 
 ### 0.0.2
