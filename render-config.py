@@ -19,28 +19,26 @@ def parse_config(markdown_contents):
 
         config[section] = lines
 
-    flat_keys = [key for key in config.keys() if key != 'searchTerms']
+    flat_keys = [key for key in config.keys() if key != "searchTerms"]
     for key in flat_keys:
         config[key] = " ".join(config[key])
-    if 'searchTerms' in config:
-        config['searchTerms'] = [
-            re.compile(r"^- ").sub("", term)
-            for term
-            in config['searchTerms']
+    if "searchTerms" in config:
+        config["searchTerms"] = [
+            re.compile(r"^- ").sub("", term) for term in config["searchTerms"]
         ]
-    if 'avatar' in config:
-        matches = re.compile("^.*\((.+)\)$").match(config['avatar'])
+    if "avatar" in config:
+        matches = re.compile("^.*\((.+)\)$").match(config["avatar"])
         if matches:
-            config['avatar'] = matches.group(1)
-    if 'recordName' in config:
-        record_name = config['recordName']
-        record_name = record_name.replace(' ', '').lower()
+            config["avatar"] = matches.group(1)
+    if "recordName" in config:
+        record_name = config["recordName"]
+        record_name = record_name.replace(" ", "").lower()
         record_name = record_name[0:15]
-        config['recordName'] = record_name
-    if 'displayName' in config:
-        display_name = config['displayName']
+        config["recordName"] = record_name
+    if "displayName" in config:
+        display_name = config["displayName"]
         display_name = display_name[0:24]
-        config['displayName'] = display_name
+        config["displayName"] = display_name
 
     return config
 
@@ -57,12 +55,14 @@ def replace_json_config(worker_js_path, config):
     if len(sections) != 2:
         raise Exception("Expected to find sentinel in worker.js")
 
-    new_contents = "".join([
-        sections[0],
-        WORKER_SENTINEL,
-        "const CONFIG = " + json.dumps(config, indent=2),
-        "\n",
-    ])
+    new_contents = "".join(
+        [
+            sections[0],
+            WORKER_SENTINEL,
+            "const CONFIG = " + json.dumps(config, indent=2),
+            "\n",
+        ]
+    )
 
     with open(worker_js_path, "w") as f:
         f.write(new_contents)
