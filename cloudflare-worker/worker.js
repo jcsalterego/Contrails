@@ -1,4 +1,3 @@
-
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
 const DEFAULT_LIMIT = 40;
@@ -61,10 +60,11 @@ async function getFeedSkeleton(request) {
   let responsePromises = [];
 
   for (let searchTerm of searchTerms) {
-    let url = "https://search.bsky.social/search/posts?"
-        + new URLSearchParams({
-          q: searchTerm,
-        });
+    let url =
+      "https://search.bsky.social/search/posts?" +
+      new URLSearchParams({
+        q: searchTerm,
+      });
     responsePromises.push(fetch(url));
   }
   let responses = await Promise.all(responsePromises);
@@ -84,11 +84,13 @@ async function getFeedSkeleton(request) {
     timestampURLs.push([timestamp, atURL]);
   }
 
-  timestampURLs = timestampURLs.toSorted((b, a) => (a === b) ? 0 : (a < b) ? -1 : 1);
+  timestampURLs = timestampURLs.toSorted((b, a) =>
+    a === b ? 0 : a < b ? -1 : 1
+  );
   var feed = [];
   for (let timestampUrl of timestampURLs) {
     let atUrl = timestampUrl[1];
-    feed.push({ post : atUrl });
+    feed.push({ post: atUrl });
   }
   // TODO apply this after adding pagination support
   // feed = feed.slice(0, limit);
