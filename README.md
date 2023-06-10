@@ -61,6 +61,7 @@ In the event you'd like to pull in the latest changes into a fork of Contrails, 
 7. Go to **Actions** > **1. Check Requirements**, select **Run Workflow**, refresh and wait for completion
 8. Go to **Actions** > **2. Deploy to Cloudflare**, select **Run Workflow**, refresh and wait for completion
 9. Go to **Actions** > **3. Publish Feed Generator**, select **Run Workflow**, refresh and wait for completion
+10. Visit the `BLUESKY_HANDLE` profile, e.g. [https://bsky.app/profile/jcsalterego.bsky.social](https://bsky.app/profile/jcsalterego.bsky.social) and then the Feeds tab
 
 ## Installation & Configuration: Director's Cut
 
