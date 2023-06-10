@@ -124,6 +124,7 @@ const CONFIGS = {
     "description": "Cute animals feed",
     "searchTerms": [
       "cats",
+      "at://did:plc:ozppa2bsq6bdnajyweoir2i2/app.bsky.feed.post/3jxju2wwap22e",
       "dogs",
       "penguins",
       "red pandas",
