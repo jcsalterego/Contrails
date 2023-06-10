@@ -2,19 +2,13 @@
 # Contrails
 
 Contrails is an [ATProto Feed Generator](https://github.com/bluesky-social/feed-generator) backed by
-[Cloudflare Workers](https://workers.cloudflare.com) and Bluesky Search.
+[Cloudflare Workers](https://workers.cloudflare.com) and [Bluesky Search](https://bsky.app/search).
 
-Edit `CONFIG.md` to define your feed generator.
+Fork or copy the repository and edit `CONFIG.md` to define your feed generator.
 
-Deploy right from [GitHub Actions](https://github.com/features/actions).
+Deploy right from [GitHub Actions](https://github.com/features/actions) to [Cloudflare Workers](https://workers.cloudflare.com).
 
 The current release is [**0.0.3**](https://github.com/jcsalterego/Contrails/releases/latest).
-
-## A Post
-
-![](docs/thecloud.png)
-
-_[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar](https://github.com/bluesky-social/indigo/tree/main/cmd/palomar). RIP thecloud, we hardly knew ye.
 
 ## Requirements
 
@@ -22,6 +16,26 @@ _[Holds hand to earpiece]_ I'm being told Bluesky Search is now called [Palomar]
 - GitHub account ([Sign up](https://github.com/signup) or [Login](https://github.com/login))
 - Cloudflare account ([Sign up](https://dash.cloudflare.com/sign-up) or [Login](https://dash.cloudflare.com/login/))
 - A moderate-to-high tolerance for adventure
+
+## Installation & Configuration: The Short Version
+
+1. Create a Cloudflare Worker
+2. Create a Cloudflare API Token (the Edit Workers template is fine)
+3. Create a Bluesky App Password
+4. Fork this repository
+5. In your fork's **Settings > Secrets and variables > Actions**, set the following:
+  * Variable: `BLUESKY_HANDLE`
+  * Variable: `CLOUDFLARE_ACCOUNT_ID`
+  * Variable: `CLOUDFLARE_WORKER_NAME`
+  * Secret: `BLUESKY_APP_PASSWORD`
+  * Secret: `CLOUDFLARE_API_TOKEN`
+6. Edit [CONFIG.md](CONFIG.md) in your fork
+7. Go to **Actions** > **1. Check Requirements**, select **Run Workflow**, refresh and wait for completion
+8. Go to **Actions** > **2. Deploy to Cloudflare**, select **Run Workflow**, refresh and wait for completion
+9. Go to **Actions** > **3. Publish Feed Generator**, select **Run Workflow**, refresh and wait for completion
+10. Visit the `BLUESKY_HANDLE` profile, e.g. [https://bsky.app/profile/jcsalterego.bsky.social](https://bsky.app/profile/jcsalterego.bsky.social) and then the Feeds tab
+
+The longer (and incomplete) instructions can be found in [INSTALL.md](INSTALL.md).
 
 ## Upgrading
 
@@ -45,29 +59,11 @@ In the event you'd like to pull in the latest changes into a fork of Contrails, 
 
 * Initial Release
 
-## Installation & Configuration: The Short Version
+## Etymology
 
-1. Create a Cloudflare Worker
-2. Create a Cloudflare API Token (the Edit Workers template is fine)
-3. Create a Bluesky App Password
-4. Fork this repository
-5. In your fork's **Settings > Secrets and variables > Actions**, set the following:
-  * Variable: `BLUESKY_HANDLE`
-  * Variable: `CLOUDFLARE_ACCOUNT_ID`
-  * Variable: `CLOUDFLARE_WORKER_NAME`
-  * Secret: `BLUESKY_APP_PASSWORD`
-  * Secret: `CLOUDFLARE_API_TOKEN`
-6. Edit [CONFIG.md](CONFIG.md) in your fork
-7. Go to **Actions** > **1. Check Requirements**, select **Run Workflow**, refresh and wait for completion
-8. Go to **Actions** > **2. Deploy to Cloudflare**, select **Run Workflow**, refresh and wait for completion
-9. Go to **Actions** > **3. Publish Feed Generator**, select **Run Workflow**, refresh and wait for completion
-10. Visit the `BLUESKY_HANDLE` profile, e.g. [https://bsky.app/profile/jcsalterego.bsky.social](https://bsky.app/profile/jcsalterego.bsky.social) and then the Feeds tab
+![](docs/thecloud.png)
 
-## Installation & Configuration: Director's Cut
-
-Here is the currently incomplete, long unabridged version of Installation and Configuration:
-
-[INSTALL.md](INSTALL.md) `under-construction.gif`
+_Ed. Note: Bluesky Search is now called [Palomar](https://github.com/bluesky-social/indigo/tree/main/cmd/palomar)._
 
 ## Publishing Diagram
 
