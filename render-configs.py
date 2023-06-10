@@ -3,8 +3,59 @@ import glob
 import json
 import os
 import re
+import sys
+
+import requests
 
 WORKER_SENTINEL = "\n\n// CONFIGS\n\n"
+LIST_ITEM_REGEX = re.compile(r"^- ")
+POST_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/(.+?)/post/([a-z0-9]+)")
+
+
+def resolve_handles(handles):
+    dids = {}
+    for handle in handles:
+        url = f"https://bsky.social/xrpc/com.atproto.identity.resolveHandle?handle={handle}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            did = response.json()["did"]
+            dids[handle] = did
+    return dids
+
+
+def render_search_terms(search_terms):
+    handles = set()
+    rendered_terms = []
+
+    # strip out list item markers
+    terms = [re.compile(LIST_ITEM_REGEX).sub("", term) for term in search_terms]
+
+    # collect handles and pins
+    for term in terms:
+        post_matches = POST_REGEX.match(term)
+        if post_matches:
+            handle = post_matches.group(1)
+            handles.add(handle)
+
+    # resolve handles
+    dids = resolve_handles(handles)
+
+    # replace handles with DIDs
+    for term in terms:
+        post_matches = POST_REGEX.match(term)
+        if post_matches:
+            handle = post_matches.group(1)
+            rkey = post_matches.group(2)
+            did = dids[handle]
+            if did:
+                at_url = f"at://{did}/app.bsky.feed.post/{rkey}"
+                rendered_terms.append(at_url)
+            else:
+                print(f"WARN: Failed to resolve handle {handle}", file=sys.stderr)
+        else:
+            rendered_terms.append(term)
+
+    return rendered_terms
 
 
 def parse_config(dirname, markdown_contents):
@@ -28,9 +79,7 @@ def parse_config(dirname, markdown_contents):
     for key in flat_keys:
         config[key] = " ".join(config[key])
     if "searchTerms" in config:
-        config["searchTerms"] = [
-            re.compile(r"^- ").sub("", term) for term in config["searchTerms"]
-        ]
+        config["searchTerms"] = render_search_terms(config["searchTerms"])
     if "avatar" in config:
         matches = re.compile("^.*\((.+)\)$").match(config["avatar"])
         if matches:
@@ -46,7 +95,7 @@ def parse_config(dirname, markdown_contents):
         config["displayName"] = display_name
 
     if "isEnabled" in config:
-        config["isEnabled"] = (config["isEnabled"].lower() == "true")
+        config["isEnabled"] = config["isEnabled"].lower() == "true"
     else:
         # for legacy support, if the section is missing, set to True
         config["isEnabled"] = True
@@ -90,5 +139,6 @@ def main():
 
     save_json_configs("feed-generator/configs.json", configs)
     replace_json_configs("cloudflare-worker/worker.js", configs)
+
 
 main()
