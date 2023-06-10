@@ -5,6 +5,15 @@ import os
 import re
 
 WORKER_SENTINEL = "\n\n// CONFIGS\n\n"
+LIST_ITEM_REGEX = re.compile(r"^- ")
+
+
+def render_search_terms(search_terms):
+    rv = []
+    for term in search_terms:
+        term = re.compile(LIST_ITEM_REGEX).sub("", term)
+        rv.append(term)
+    return rv
 
 
 def parse_config(dirname, markdown_contents):
@@ -28,9 +37,7 @@ def parse_config(dirname, markdown_contents):
     for key in flat_keys:
         config[key] = " ".join(config[key])
     if "searchTerms" in config:
-        config["searchTerms"] = [
-            re.compile(r"^- ").sub("", term) for term in config["searchTerms"]
-        ]
+        config["searchTerms"] = render_search_terms(config["searchTerms"])
     if "avatar" in config:
         matches = re.compile("^.*\((.+)\)$").match(config["avatar"])
         if matches:
@@ -46,7 +53,7 @@ def parse_config(dirname, markdown_contents):
         config["displayName"] = display_name
 
     if "isEnabled" in config:
-        config["isEnabled"] = (config["isEnabled"].lower() == "true")
+        config["isEnabled"] = config["isEnabled"].lower() == "true"
     else:
         # for legacy support, if the section is missing, set to True
         config["isEnabled"] = True
@@ -90,5 +97,6 @@ def main():
 
     save_json_configs("feed-generator/configs.json", configs)
     replace_json_configs("cloudflare-worker/worker.js", configs)
+
 
 main()
