@@ -35,6 +35,25 @@ function jsonResponse(obj) {
   return response;
 }
 
+function bucketTerms(allTerms, opts={}) {
+  let maxSearchTerms = opts["maxSearchTerms"] || MAX_SEARCH_TERMS;
+  let pinnedPosts = [];
+  let searchTerms = [];
+
+  for (let term of allTerms) {
+    if (term.startsWith("at://")) {
+      pinnedPosts.push(term);
+    } else {
+      searchTerms.push(term);
+    }
+  }
+
+  return {
+    pinnedPosts: pinnedPosts,
+    searchTerms: searchTerms.slice(0, maxSearchTerms),
+  }
+}
+
 async function getFeedSkeleton(request) {
   let url = new URL(request.url);
   let feedAtUrl = url.searchParams.get("feed");
@@ -56,7 +75,11 @@ async function getFeedSkeleton(request) {
     limit = DEFAULT_LIMIT;
   }
 
-  let searchTerms = config.searchTerms.slice(0, MAX_SEARCH_TERMS);
+  let allTerms = bucketTerms(config.searchTerms, {
+    maxSearchTerms: MAX_SEARCH_TERMS,
+  });
+  let searchTerms = allTerms.searchTerms;
+  let pinnedPosts = allTerms.pinnedPosts;
   let responsePromises = [];
 
   for (let searchTerm of searchTerms) {
@@ -88,6 +111,9 @@ async function getFeedSkeleton(request) {
     a === b ? 0 : a < b ? -1 : 1
   );
   var feed = [];
+  for (let pinnedPost of pinnedPosts) {
+    feed.push({ post: pinnedPost });
+  }
   for (let timestampUrl of timestampURLs) {
     let atUrl = timestampUrl[1];
     feed.push({ post: atUrl });
