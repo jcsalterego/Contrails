@@ -55,12 +55,14 @@ function bucketTerms(allTerms, opts={}) {
 }
 
 async function getFeedSkeleton(request) {
-  let url = new URL(request.url);
-  let feedAtUrl = url.searchParams.get("feed");
+  const url = new URL(request.url);
+  const feedAtUrl = url.searchParams.get("feed");
   if (feedAtUrl === null) {
     console.warn(`feed parameter missing from query string`);
     return feedJsonResponse([]);
   }
+  const cursorParam = url.searchParams.get("cursor");
+  const showPins = cursorParam === null;
   let words = feedAtUrl.split("/");
   let feedId = words[words.length - 1];
   let config = CONFIGS[feedId];
@@ -80,6 +82,9 @@ async function getFeedSkeleton(request) {
   });
   let searchTerms = allTerms.searchTerms;
   let pinnedPosts = allTerms.pinnedPosts;
+  if (!showPins) {
+    pinnedPosts = [];
+  }
   let responsePromises = [];
 
   for (let searchTerm of searchTerms) {
