@@ -35,6 +35,34 @@ function jsonResponse(obj) {
   return response;
 }
 
+async function loginWithEnv(env) {
+  return await login(env.BLUESKY_HANDLE, env.BLUESKY_APP_PASSWORD);
+}
+
+async function login(username, password) {
+  const url = "https://bsky.social/xrpc/com.atproto.server.createSession";
+  const body = {
+    identifier: username,
+    password: password,
+  };
+  const init = {
+    body: JSON.stringify(body),
+    method: "POST",
+    headers: {
+      "content-type": "application/json;charset=UTF-8",
+    },
+  };
+  console.log(`fetch url ${url}`);
+  let response = await fetch(url, init);
+  let session = await response.json();
+
+  if (session["error"] !== undefined) {
+    return null;
+  } else {
+    return session;
+  }
+}
+
 function bucketTerms(allTerms, opts={}) {
   let maxSearchTerms = opts["maxSearchTerms"] || MAX_SEARCH_TERMS;
   let pinnedPosts = [];
@@ -54,7 +82,11 @@ function bucketTerms(allTerms, opts={}) {
   }
 }
 
-async function getFeedSkeleton(request) {
+async function getFeedSkeleton(request, env) {
+  let session = await loginWithEnv(env);
+  console.log("session", session);
+  console.log("auth headers", request.headers.get("Authorization"));
+
   const url = new URL(request.url);
   const feedAtUrl = url.searchParams.get("feed");
   if (feedAtUrl === null) {
@@ -140,7 +172,7 @@ export default {
       return await wellKnown(request);
     }
     if (request.url.indexOf("/xrpc/app.bsky.feed.getFeedSkeleton") > -1) {
-      return await getFeedSkeleton(request);
+      return await getFeedSkeleton(request, env);
     }
     return new Response(`{}`);
   },
