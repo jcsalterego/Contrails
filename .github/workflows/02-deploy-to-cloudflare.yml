@@ -6,6 +6,8 @@ on:
     inputs:
 
 env:
+  BLUESKY_HANDLE: ${{ vars.BLUESKY_HANDLE }}
+  BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CLOUDFLARE_WORKER_NAME: ${{ vars.CLOUDFLARE_WORKER_NAME }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
@@ -19,9 +21,20 @@ jobs:
       - name: Render Config
         run: |
           python render-configs.py
-      - name: Deploy Cloudflare Worker
+      - name: Populate wrangler.toml
+        run: |
+          >wrangler.toml
+          echo "name = \"${{ env.CLOUDFLARE_WORKER_NAME }}\"" >>wrangler.toml
+          echo compatibility_date = \"2023-05-30\" >>wrangler.toml
+      - name: Store Secrets and Deploy
         uses: cloudflare/wrangler-action@2.0.0
         with:
           apiToken: ${{ env.CLOUDFLARE_API_TOKEN }}
+          secrets: |
+            BLUESKY_HANDLE
+            BLUESKY_APP_PASSWORD
           command: |
-            deploy cloudflare-worker/worker.js --compatibility-date 2023-05-30 --name ${{ env.CLOUDFLARE_WORKER_NAME }}
+            deploy cloudflare-worker/worker.js
+      - name: Cleanup wrangler.toml
+        run: |
+          rm -f wrangler.toml
