@@ -84,8 +84,7 @@ function bucketTerms(allTerms, opts={}) {
 
 async function getFeedSkeleton(request, env) {
   let session = await loginWithEnv(env);
-  console.log("session", session);
-  console.log("auth headers", request.headers.get("Authorization"));
+  console.log("valid session", session !== null);
 
   const url = new URL(request.url);
   const feedAtUrl = url.searchParams.get("feed");
