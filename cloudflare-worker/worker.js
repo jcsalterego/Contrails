@@ -1,5 +1,6 @@
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
+const MAX_FETCHES = 7;
 const DEFAULT_LIMIT = 40;
 
 const DID_JSON = {
@@ -19,6 +20,19 @@ const DID_JSON = {
 
 function cloneObj(obj) {
   return JSON.parse(JSON.stringify(obj));
+}
+
+let fetchCount = 0;
+
+async function fetchWithCounter() {
+  fetchCount++;
+  if (fetchCount > MAX_FETCHES) {
+    console.log(`NOT fetching ${fetchCount}`);
+    return null;
+  } else {
+    console.log(`fetch ${fetchCount}`);
+    return await fetch(...arguments);
+  }
 }
 
 async function wellKnown(request) {
@@ -52,15 +66,14 @@ async function login(username, password) {
       "content-type": "application/json;charset=UTF-8",
     },
   };
-  console.log(`fetch url ${url}`);
-  let response = await fetch(url, init);
-  let session = await response.json();
-
-  if (session["error"] !== undefined) {
-    return null;
-  } else {
-    return session;
+  let response = await fetchWithCounter(url, init);
+  if (response !== null) {
+    let session = await response.json();
+    if (session["error"] === undefined) {
+      return session;
+    }
   }
+  return null;
 }
 
 function bucketTerms(allTerms, opts={}) {
@@ -117,22 +130,27 @@ async function getFeedSkeleton(request, env) {
   if (!showPins) {
     pinnedPosts = [];
   }
-  let responsePromises = [];
+  let responses = [];
+  let urls = [];
 
   for (let searchTerm of searchTerms) {
     let url =
-      "https://search.bsky.social/search/posts?" +
-      new URLSearchParams({
-        q: searchTerm,
-      });
-    responsePromises.push(fetch(url));
+        "https://search.bsky.social/search/posts?" +
+        new URLSearchParams({
+          q: searchTerm,
+        });
+    urls.push(url);
   }
-  let responses = await Promise.all(responsePromises);
+  for (let url of urls) {
+    responses.push(await fetchWithCounter(url));
+  }
 
   let allItems = [];
   for (let response of responses) {
-    let items = await response.json();
-    allItems = allItems.concat(items);
+    if (response !== null) {
+      let items = await response.json();
+      allItems = allItems.concat(items);
+    }
   }
 
   let timestampURLs = [];
