@@ -292,6 +292,17 @@ const CONFIGS = {
     "avatar": "avatar.png",
     "isEnabled": true
   },
+  "bluesky-app": {
+    "recordName": "bluesky-app",
+    "isEnabled": false,
+    "displayName": "Bluesky App",
+    "description": "Updates about the app",
+    "searchTerms": [
+      "at://did:plc:z72i7hdynmk6r22z27h6tvur",
+      "at://did:plc:ewvi7nxzyoun6zhxrhs64oiz"
+    ],
+    "avatar": "configs/avatar2.png"
+  },
   "science-emojis": {
     "recordName": "science-emojis",
     "isEnabled": false,
