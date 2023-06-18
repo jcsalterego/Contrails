@@ -76,30 +76,80 @@ async function login(username, password) {
   return null;
 }
 
-function bucketTerms(allTerms, opts={}) {
+async function appBskyFeedGetAuthorFeed(session, did) {
+  if (session === null) {
+    return null;
+  }
+  const url =
+    "https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed?" +
+    new URLSearchParams({
+      actor: did,
+      limit: 30,
+    });
+  return await fetchWithCounter(url, {
+    headers: {
+      Authorization: `Bearer ${session.accessJwt}`,
+    },
+  });
+}
+
+function bucketTerms(allTerms, opts = {}) {
   let maxSearchTerms = opts["maxSearchTerms"] || MAX_SEARCH_TERMS;
-  let pinnedPosts = [];
+  let posts = [];
+  let users = [];
   let searchTerms = [];
 
   for (let term of allTerms) {
     if (term.startsWith("at://")) {
-      pinnedPosts.push(term);
+      if (term.indexOf("/app.bsky.feed.post/") > -1) {
+        posts.push(term);
+      } else {
+        let user = term.replace(/^at:\/\//, "");
+        users.push(user);
+      }
     } else {
       searchTerms.push(term);
     }
   }
 
   return {
-    pinnedPosts: pinnedPosts,
+    posts: posts,
+    users: users,
     searchTerms: searchTerms.slice(0, maxSearchTerms),
+  };
+}
+
+async function fetchSearchTerms(searchTerms) {
+  let responses = [];
+  let urls = [];
+  for (let searchTerm of searchTerms) {
+    let url =
+      "https://search.bsky.social/search/posts?" +
+      new URLSearchParams({
+        q: searchTerm,
+      });
+    urls.push(url);
   }
+  for (let url of urls) {
+    responses.push(await fetchWithCounter(url));
+  }
+  return responses.map((response) => {
+    return { type: "search", response: response };
+  });
+}
+
+async function fetchUsers(session, users) {
+  let responses = [];
+  let urls = [];
+  for (let user of users) {
+    responses.push(await appBskyFeedGetAuthorFeed(session, user));
+  }
+  return responses.map((response) => {
+    return { type: "user", response: response };
+  });
 }
 
 async function getFeedSkeleton(request, env) {
-  let session = await loginWithEnv(env);
-  console.log("session", session);
-  console.log("auth headers", request.headers.get("Authorization"));
-
   const url = new URL(request.url);
   const feedAtUrl = url.searchParams.get("feed");
   if (feedAtUrl === null) {
@@ -126,47 +176,67 @@ async function getFeedSkeleton(request, env) {
     maxSearchTerms: MAX_SEARCH_TERMS,
   });
   let searchTerms = allTerms.searchTerms;
-  let pinnedPosts = allTerms.pinnedPosts;
+  let posts = allTerms.posts;
+  let users = allTerms.users;
   if (!showPins) {
-    pinnedPosts = [];
+    posts = [];
   }
-  let responses = [];
+  let typedResponses = [];
   let urls = [];
 
-  for (let searchTerm of searchTerms) {
-    let url =
-        "https://search.bsky.social/search/posts?" +
-        new URLSearchParams({
-          q: searchTerm,
-        });
-    urls.push(url);
-  }
-  for (let url of urls) {
-    responses.push(await fetchWithCounter(url));
+  typedResponses.push(...(await fetchSearchTerms(searchTerms)));
+
+  let session = null;
+  if (users.length > 0) {
+    session = await loginWithEnv(env);
+    typedResponses.push(...(await fetchUsers(session, users)));
   }
 
   let allItems = [];
-  for (let response of responses) {
-    if (response !== null) {
-      let items = await response.json();
-      allItems = allItems.concat(items);
+  for (let typedResponse of typedResponses) {
+    if (typedResponse !== null) {
+      let response = typedResponse.response;
+      if (response !== null) {
+        let jsonResponse = await response.json();
+        allItems.push({
+          type: typedResponse.type,
+          json: jsonResponse,
+        });
+      }
     }
   }
 
   let timestampURLs = [];
   for (let item of allItems) {
-    let did = item.user.did;
-    let rkey = item.tid.split("/").slice(-1)[0];
-    let timestamp = item.post.createdAt;
-    let atURL = `at://${did}/app.bsky.feed.post/${rkey}`;
-    timestampURLs.push([timestamp, atURL]);
+    if (item.type === "search") {
+      let did = item.user.did;
+      let rkey = item.tid.split("/").slice(-1)[0];
+      let timestamp = item.post.createdAt;
+      let atURL = `at://${did}/app.bsky.feed.post/${rkey}`;
+      timestampURLs.push([timestamp, atURL]);
+    } else if (item.type === "user") {
+      if (item.json.feed !== undefined) {
+        for (let feedItem of item.json.feed) {
+          if (
+            feedItem.post !== undefined &&
+            feedItem.post.record !== undefined
+          ) {
+            let timestamp = feedItem.post.record.createdAt;
+            let atURL = feedItem.post.uri;
+            timestampURLs.push([timestamp, atURL]);
+          }
+        }
+      }
+    } else {
+      console.warn(`Unknown item type ${item.type}`);
+    }
   }
 
   timestampURLs = timestampURLs.toSorted((b, a) =>
     a === b ? 0 : a < b ? -1 : 1
   );
   var feed = [];
-  for (let pinnedPost of pinnedPosts) {
+  for (let pinnedPost of posts) {
     feed.push({ post: pinnedPost });
   }
   for (let timestampUrl of timestampURLs) {
