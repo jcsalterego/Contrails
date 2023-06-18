@@ -231,7 +231,8 @@ async function getFeedSkeleton(request, env) {
             if (feedItem.reason !== undefined) {
               continue;
             }
-            let timestamp = feedItem.post.record.createdAt;
+            let timestampStr = feedItem.post.record.createdAt;
+            let timestamp = new Date(timestampStr).valueOf() * 1000000;
             let atURL = feedItem.post.uri;
             timestampURLs.push([timestamp, atURL]);
           }
