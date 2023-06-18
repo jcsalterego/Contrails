@@ -208,12 +208,14 @@ async function getFeedSkeleton(request, env) {
 
   let timestampURLs = [];
   for (let item of allItems) {
-    if (item.type === "search") {
-      let did = item.user.did;
-      let rkey = item.tid.split("/").slice(-1)[0];
-      let timestamp = item.post.createdAt;
-      let atURL = `at://${did}/app.bsky.feed.post/${rkey}`;
-      timestampURLs.push([timestamp, atURL]);
+    if (item.type === "search" && Array.isArray(item.json)) {
+      for (let searchResult of item.json) {
+        let did = searchResult.user.did;
+        let rkey = searchResult.tid.split("/").slice(-1)[0];
+        let timestamp = searchResult.post.createdAt;
+        let atURL = `at://${did}/app.bsky.feed.post/${rkey}`;
+        timestampURLs.push([timestamp, atURL]);
+      }
     } else if (item.type === "user") {
       if (item.json.feed !== undefined) {
         for (let feedItem of item.json.feed) {
