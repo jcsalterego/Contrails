@@ -221,6 +221,14 @@ async function getFeedSkeleton(request, env) {
             feedItem.post !== undefined &&
             feedItem.post.record !== undefined
           ) {
+            // TODO allow replies
+            if (feedItem.reply !== undefined) {
+              continue;
+            }
+            // TODO allow reposts
+            if (feedItem.reason !== undefined) {
+              continue;
+            }
             let timestamp = feedItem.post.record.createdAt;
             let atURL = feedItem.post.uri;
             timestampURLs.push([timestamp, atURL]);
