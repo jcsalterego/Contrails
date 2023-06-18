@@ -10,6 +10,7 @@ import requests
 WORKER_SENTINEL = "\n\n// CONFIGS\n\n"
 LIST_ITEM_REGEX = re.compile(r"^- ")
 POST_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/(.+?)/post/([a-z0-9]+)")
+PROFILE_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/([^/]+)")
 
 
 def resolve_handles(handles):
@@ -33,8 +34,12 @@ def render_search_terms(search_terms):
     # collect handles and pins
     for term in terms:
         post_matches = POST_REGEX.match(term)
+        profile_matches = PROFILE_REGEX.match(term)
         if post_matches:
             handle = post_matches.group(1)
+            handles.add(handle)
+        if profile_matches:
+            handle = profile_matches.group(1)
             handles.add(handle)
 
     # resolve handles
@@ -43,12 +48,21 @@ def render_search_terms(search_terms):
     # replace handles with DIDs
     for term in terms:
         post_matches = POST_REGEX.match(term)
+        profile_matches = PROFILE_REGEX.match(term)
         if post_matches:
             handle = post_matches.group(1)
             rkey = post_matches.group(2)
             did = dids[handle]
             if did:
                 at_url = f"at://{did}/app.bsky.feed.post/{rkey}"
+                rendered_terms.append(at_url)
+            else:
+                print(f"WARN: Failed to resolve handle {handle}", file=sys.stderr)
+        elif profile_matches:
+            handle = profile_matches.group(1)
+            did = dids[handle]
+            if did:
+                at_url = f"at://{did}"
                 rendered_terms.append(at_url)
             else:
                 print(f"WARN: Failed to resolve handle {handle}", file=sys.stderr)
