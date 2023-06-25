@@ -2,6 +2,7 @@ import { jsonResponse } from "./utils.js";
 import { fetchWithCounter, loginWithEnv } from "./bsky-auth.js";
 import { feedGeneratorWellKnown } from "./bsky-feedgen.js";
 import { CONFIGS } from "./configs.js";
+import { searchPosts } from "./bsky-search.js";
 
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
@@ -50,25 +51,6 @@ function bucketTerms(allTerms, opts = {}) {
   };
 }
 
-async function fetchSearchTerms(searchTerms) {
-  let responses = [];
-  let urls = [];
-  for (let searchTerm of searchTerms) {
-    let url =
-      "https://search.bsky.social/search/posts?" +
-      new URLSearchParams({
-        q: searchTerm,
-      });
-    urls.push(url);
-  }
-  for (let url of urls) {
-    responses.push(await fetchWithCounter(url));
-  }
-  return responses.map((response) => {
-    return { type: "search", response: response };
-  });
-}
-
 async function fetchUsers(session, users) {
   let responses = [];
   let urls = [];
@@ -115,7 +97,7 @@ async function getFeedSkeleton(request, env) {
   let typedResponses = [];
   let urls = [];
 
-  typedResponses.push(...(await fetchSearchTerms(searchTerms)));
+  typedResponses.push(...(await searchPosts(searchTerms)));
 
   let session = null;
   if (users.length > 0) {
