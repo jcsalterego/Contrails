@@ -7,7 +7,6 @@ import sys
 
 import requests
 
-WORKER_SENTINEL = "\n\n// CONFIGS\n\n"
 LIST_ITEM_REGEX = re.compile(r"^- ")
 POST_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/(.+?)/post/([a-z0-9]+)")
 PROFILE_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/([^/]+)")
@@ -122,23 +121,14 @@ def save_json_configs(json_path, configs):
         json.dump(configs, f, indent=2)
 
 
-def replace_json_configs(worker_js_path, configs):
-    with open(worker_js_path, "r") as f:
-        contents = f.read()
-    sections = contents.split(WORKER_SENTINEL)
-    if len(sections) != 2:
-        raise Exception("Expected to find sentinel in worker.js")
-
+def replace_json_configs(configs_js_path, configs):
     new_contents = "".join(
         [
-            sections[0],
-            WORKER_SENTINEL,
-            "const CONFIGS = " + json.dumps(configs, indent=2),
+            "export const CONFIGS = " + json.dumps(configs, indent=2),
             "\n",
         ]
     )
-
-    with open(worker_js_path, "w") as f:
+    with open(configs_js_path, "w") as f:
         f.write(new_contents)
 
 
@@ -152,7 +142,7 @@ def main():
                 configs[config["recordName"]] = config
 
     save_json_configs("feed-generator/configs.json", configs)
-    replace_json_configs("cloudflare-worker/worker.js", configs)
+    replace_json_configs("cloudflare-worker/configs.js", configs)
 
 
 main()
