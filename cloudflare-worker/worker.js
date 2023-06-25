@@ -1,26 +1,10 @@
+import { jsonResponse } from "./utils.js";
+import { feedGeneratorWellKnown } from "./bsky-feedgen.js";
+
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
 const MAX_FETCHES = 7;
 const DEFAULT_LIMIT = 40;
-
-const DID_JSON = {
-  "@context": ["https://www.w3.org/ns/did/v1"],
-  id: "",
-  alsoKnownAs: [],
-  authentication: null,
-  verificationMethod: [],
-  service: [
-    {
-      id: "#bsky_fg",
-      type: "BskyFeedGenerator",
-      serviceEndpoint: "",
-    },
-  ],
-};
-
-function cloneObj(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}
 
 let fetchCount = 0;
 
@@ -33,20 +17,6 @@ async function fetchWithCounter() {
     console.log(`fetch ${fetchCount}`);
     return await fetch(...arguments);
   }
-}
-
-async function wellKnown(request) {
-  let host = request.headers.get("Host");
-  let didJson = cloneObj(DID_JSON);
-  didJson.id = `did:web:${host}`;
-  didJson.service[0].serviceEndpoint = `https://${host}`;
-  return jsonResponse(didJson);
-}
-
-function jsonResponse(obj) {
-  let response = new Response(JSON.stringify(obj));
-  response.headers.set("Content-Type", "application/json");
-  return response;
 }
 
 async function loginWithEnv(env) {
@@ -268,7 +238,7 @@ export default {
     console.clear();
     // lame-o routing
     if (request.url.endsWith("/.well-known/did.json")) {
-      return await wellKnown(request);
+      return await feedGeneratorWellKnown(request);
     }
     if (request.url.indexOf("/xrpc/app.bsky.feed.getFeedSkeleton") > -1) {
       return await getFeedSkeleton(request, env);
