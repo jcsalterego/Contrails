@@ -102,6 +102,10 @@ function fromSearch(response) {
   return docs;
 }
 
+function saveCursor(items) {
+  return "";
+}
+
 export async function getFeedSkeleton(request, env) {
   const url = new URL(request.url);
   const feedAtUrl = url.searchParams.get("feed");
@@ -186,7 +190,8 @@ export async function getFeedSkeleton(request, env) {
   }
   console.log("feed.length", feed.length);
 
-  return feedJsonResponse(feed);
+  let cursor = saveCursor(items);
+  return jsonResponse({ feed: feed, cursor: cursor });
 }
 
 function loadCursor(cursorParam) {
@@ -265,6 +270,10 @@ async function fetchUser(session, user) {
   }
 }
 
-function feedJsonResponse(items) {
-  return jsonResponse({ feed: items });
+function feedJsonResponse(items, cursor = null) {
+  let response = { feed: items };
+  if (cursor !== null) {
+    response.cursor = cursor;
+  }
+  return jsonResponse(response);
 }
