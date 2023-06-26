@@ -3,6 +3,7 @@ import { appBskyFeedGetAuthorFeed } from "./bsky-api";
 import { jsonResponse } from "./utils";
 import { loginWithEnv } from "./bsky-auth";
 import { searchPosts } from "./bsky-search";
+import { setSafeMode } from "./bsky-fetch-guarded";
 
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
@@ -48,6 +49,12 @@ export async function getFeedSkeleton(request, env) {
     console.warn(`Feed ID ${feedId} is not enabled`);
     return feedJsonResponse([]);
   }
+  if (config.safeMode === undefined) {
+    // this should never be the case
+    console.warn(`Feed ID ${feedId} has no safeMode`);
+    config.safeMode = true;
+  }
+  setSafeMode(config.safeMode);
 
   let limit = parseInt(url.searchParams.get("limit"));
   if (limit === null || limit === undefined || limit < 1) {
