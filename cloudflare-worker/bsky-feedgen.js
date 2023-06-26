@@ -1,8 +1,8 @@
-import { jsonResponse } from "./utils";
-import { appBskyFeedGetAuthorFeed } from "./bsky-api";
 import { CONFIGS } from "./configs";
-import { searchPosts } from "./bsky-search";
+import { appBskyFeedGetAuthorFeed } from "./bsky-api";
+import { jsonResponse } from "./utils";
 import { loginWithEnv } from "./bsky-auth";
+import { searchPosts } from "./bsky-search";
 
 // let's be nice
 const MAX_SEARCH_TERMS = 5;

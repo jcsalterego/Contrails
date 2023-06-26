@@ -1,16 +1,4 @@
-const MAX_FETCHES = 7;
-let fetchCount = 0;
-
-export async function fetchWithCounter() {
-  fetchCount++;
-  if (fetchCount > MAX_FETCHES) {
-    console.log(`NOT fetching ${fetchCount}`);
-    return null;
-  } else {
-    console.log(`fetch ${fetchCount}`);
-    return await fetch(...arguments);
-  }
-}
+import { fetchGuarded } from "./bsky-fetch-guarded";
 
 export async function loginWithEnv(env) {
   return await login(env.BLUESKY_HANDLE, env.BLUESKY_APP_PASSWORD);
@@ -29,7 +17,7 @@ async function login(username, password) {
       "content-type": "application/json;charset=UTF-8",
     },
   };
-  let response = await fetchWithCounter(url, init);
+  let response = await fetchGuarded(url, init);
   if (response !== null) {
     let session = await response.json();
     if (session["error"] === undefined) {

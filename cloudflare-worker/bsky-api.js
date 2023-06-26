@@ -1,4 +1,4 @@
-import { fetchWithCounter } from "./bsky-auth";
+import { fetchGuarded } from "./bsky-fetch-guarded";
 
 export async function appBskyFeedGetAuthorFeed(session, did) {
   if (session === null) {
@@ -10,7 +10,7 @@ export async function appBskyFeedGetAuthorFeed(session, did) {
       actor: did,
       limit: 30,
     });
-  return await fetchWithCounter(url, {
+  return await fetchGuarded(url, {
     headers: {
       Authorization: `Bearer ${session.accessJwt}`,
     },

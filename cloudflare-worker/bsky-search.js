@@ -1,4 +1,4 @@
-import { fetchWithCounter } from "./bsky-auth";
+import { fetchGuarded } from "./bsky-fetch-guarded";
 
 export async function searchPosts(searchTerms) {
   let responses = [];
@@ -12,7 +12,7 @@ export async function searchPosts(searchTerms) {
     urls.push(url);
   }
   for (let url of urls) {
-    responses.push(await fetchWithCounter(url));
+    responses.push(await fetchGuarded(url));
   }
   return responses.map((response) => {
     return { type: "search", response: response };
