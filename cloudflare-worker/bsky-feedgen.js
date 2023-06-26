@@ -44,6 +44,10 @@ export async function getFeedSkeleton(request, env) {
     console.warn(`Could not find Feed ID ${feedId}`);
     return feedJsonResponse([]);
   }
+  if (config.isEnabled !== true) {
+    console.warn(`Feed ID ${feedId} is not enabled`);
+    return feedJsonResponse([]);
+  }
 
   let limit = parseInt(url.searchParams.get("limit"));
   if (limit === null || limit === undefined || limit < 1) {
