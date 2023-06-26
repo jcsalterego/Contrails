@@ -34,6 +34,14 @@ Updates about the app
 - https://bsky.app/profile/bsky.app
 - https://bsky.app/profile/atproto.com
 
+# safeMode
+
+> Safe mode limits the total number of API calls coming from Cloudflare.
+>
+> Set to `false` if you have higher limits via a paid Cloudflare plan.
+
+true
+
 # avatar
 
 > This must link to an image (PNG or JPEG) in the same directory as this CONFIG.md. It doesn't have to be called `avatar2.png`, but just be sure this CONFIG.md points to the correct file.

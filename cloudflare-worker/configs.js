@@ -1,4 +1,4 @@
-{
+export const CONFIGS = {
   "emotional-suppo": {
     "recordName": "emotional-suppo",
     "displayName": "Emotional Support Pets",

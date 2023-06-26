@@ -113,6 +113,12 @@ def parse_config(dirname, markdown_contents):
         # for legacy support, if the section is missing, set to True
         config["isEnabled"] = True
 
+    if "safeMode" in config:
+        config["safeMode"] = config["safeMode"].lower() == "true"
+    else:
+        # for legacy support, if the section is missing, set to True
+        config["safeMode"] = True
+
     return config
 
 
