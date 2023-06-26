@@ -2,7 +2,7 @@ import { CONFIGS } from "./configs";
 import { appBskyFeedGetAuthorFeed } from "./bsky-api";
 import { jsonResponse } from "./utils";
 import { searchPost } from "./bsky-search";
-import { setSafeMode } from "./bsky-fetch-guarded";
+import { resetFetchCount, setSafeMode } from "./bsky-fetch-guarded";
 import { loginWithEnv } from "./bsky-auth";
 
 // let's be nice
@@ -135,6 +135,7 @@ export async function getFeedSkeleton(request, env) {
     console.warn(`Feed ID ${feedId} has no safeMode`);
     config.safeMode = true;
   }
+  resetFetchCount(); // for long-lived processes (local)
   setSafeMode(config.safeMode);
 
   let limit = parseInt(url.searchParams.get("limit"));

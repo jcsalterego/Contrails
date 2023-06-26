@@ -2,6 +2,10 @@ export let fetchCount = 0;
 let SAFE_MODE = true;
 const MAX_FETCHES = 7;
 
+export function resetFetchCount() {
+  fetchCount = 0;
+}
+
 export function setSafeMode(safeMode) {
   SAFE_MODE = safeMode;
 }
