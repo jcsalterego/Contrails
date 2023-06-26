@@ -6,7 +6,6 @@ import { searchPosts } from "./bsky-search";
 import { setSafeMode } from "./bsky-fetch-guarded";
 
 // let's be nice
-const MAX_SEARCH_TERMS = 5;
 const DEFAULT_LIMIT = 40;
 
 export async function feedGeneratorWellKnown(request) {
@@ -61,9 +60,7 @@ export async function getFeedSkeleton(request, env) {
     limit = DEFAULT_LIMIT;
   }
 
-  let allTerms = bucketTerms(config.searchTerms, {
-    maxSearchTerms: MAX_SEARCH_TERMS,
-  });
+  let allTerms = bucketTerms(config.searchTerms);
   let searchTerms = allTerms.searchTerms;
   let posts = allTerms.posts;
   let users = allTerms.users;
@@ -148,8 +145,7 @@ export async function getFeedSkeleton(request, env) {
   return feedJsonResponse(feed);
 }
 
-function bucketTerms(allTerms, opts = {}) {
-  let maxSearchTerms = opts["maxSearchTerms"] || MAX_SEARCH_TERMS;
+function bucketTerms(allTerms) {
   let posts = [];
   let users = [];
   let searchTerms = [];
@@ -170,7 +166,7 @@ function bucketTerms(allTerms, opts = {}) {
   return {
     posts: posts,
     users: users,
-    searchTerms: searchTerms.slice(0, maxSearchTerms),
+    searchTerms: searchTerms,
   };
 }
 
