@@ -1,29 +1,13 @@
 import { jsonResponse } from "./utils.js";
-import { fetchWithCounter, loginWithEnv } from "./bsky-auth.js";
+import { loginWithEnv } from "./bsky-auth.js";
 import { feedGeneratorWellKnown } from "./bsky-feedgen.js";
 import { CONFIGS } from "./configs.js";
 import { searchPosts } from "./bsky-search.js";
+import { appBskyFeedGetAuthorFeed } from "./bsky-api";
 
 // let's be nice
 const MAX_SEARCH_TERMS = 5;
 const DEFAULT_LIMIT = 40;
-
-async function appBskyFeedGetAuthorFeed(session, did) {
-  if (session === null) {
-    return null;
-  }
-  const url =
-    "https://bsky.social/xrpc/app.bsky.feed.getAuthorFeed?" +
-    new URLSearchParams({
-      actor: did,
-      limit: 30,
-    });
-  return await fetchWithCounter(url, {
-    headers: {
-      Authorization: `Bearer ${session.accessJwt}`,
-    },
-  });
-}
 
 function bucketTerms(allTerms, opts = {}) {
   let maxSearchTerms = opts["maxSearchTerms"] || MAX_SEARCH_TERMS;
