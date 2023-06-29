@@ -43,7 +43,7 @@ function fromPost(response) {
       });
     }
   } else {
-    console.log("wtf post response", response);
+    console.warn("Unexpected (static) post response", response);
   }
   return docs;
 }
