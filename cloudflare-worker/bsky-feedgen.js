@@ -52,8 +52,8 @@ function fromUser(queryIdx, response, params) {
   let docs = [];
   let feed = response.feed;
   if (Array.isArray(feed)) {
-    let cursor = params.cursor;
-    let nextCursor = response.cursor;
+    // filter out replies and reposts
+    let filteredFeed = [];
     for (let itemIdx = 0; itemIdx < feed.length; itemIdx++) {
       let feedItem = feed[itemIdx];
       if (feedItem.post !== undefined && feedItem.post.record !== undefined) {
@@ -65,6 +65,16 @@ function fromUser(queryIdx, response, params) {
         if (feedItem.reason !== undefined) {
           continue;
         }
+        filteredFeed.push(feedItem);
+      }
+    }
+    feed = filteredFeed;
+
+    let cursor = params.cursor;
+    let nextCursor = response.cursor;
+    for (let itemIdx = 0; itemIdx < feed.length; itemIdx++) {
+      let feedItem = feed[itemIdx];
+      if (feedItem.post !== undefined && feedItem.post.record !== undefined) {
         let timestampStr = feedItem.post.record.createdAt;
         let timestamp = new Date(timestampStr).valueOf() * 1000000;
         let atURL = feedItem.post.uri;
