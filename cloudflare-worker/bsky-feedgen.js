@@ -29,10 +29,7 @@ export async function feedGeneratorWellKnown(request) {
 
 async function staticPost(value) {
   return {
-    type: "post",
-    response: {
-      feed: [{ post: value }],
-    },
+    feed: [{post: value}],
   };
 }
 
@@ -41,7 +38,7 @@ function fromPost(response) {
   if (Array.isArray(response.feed)) {
     for (let item of response.feed) {
       docs.push({
-        pinned: true,
+        pin: true,
         atURL: item.post,
       });
     }
@@ -51,12 +48,14 @@ function fromPost(response) {
   return docs;
 }
 
-function fromUser(response) {
+function fromUser(queryIdx, response, params) {
   let docs = [];
   let feed = response.feed;
   if (Array.isArray(feed)) {
-    for (let idx = 0; idx < feed.length; idx++) {
-      let feedItem = feed[idx];
+    let cursor = params.cursor;
+    let nextCursor = response.cursor;
+    for (let itemIdx = 0; itemIdx < feed.length; itemIdx++) {
+      let feedItem = feed[itemIdx];
       if (feedItem.post !== undefined && feedItem.post.record !== undefined) {
         // TODO allow replies
         if (feedItem.reply !== undefined) {
@@ -71,10 +70,14 @@ function fromUser(response) {
         let atURL = feedItem.post.uri;
 
         docs.push({
+          type: "user",
+          queryIdx: queryIdx,
           timestamp: timestamp,
           atURL: atURL,
-          idx: idx,
+          itemIdx: itemIdx,
           total: feed.length,
+          cursor: cursor,
+          nextCursor: nextCursor,
         });
       }
     }
@@ -82,28 +85,112 @@ function fromUser(response) {
   return docs;
 }
 
-function fromSearch(response) {
+function fromSearch(queryIdx, response, searchParams) {
   let docs = [];
   if (Array.isArray(response)) {
-    for (let idx = 0; idx < response.length; idx++) {
-      let searchResult = response[idx];
+    for (let itemIdx = 0; itemIdx < response.length; itemIdx++) {
+      let searchResult = response[itemIdx];
       let did = searchResult.user.did;
       let rkey = searchResult.tid.split("/").slice(-1)[0];
       let timestamp = searchResult.post.createdAt;
       let atURL = `at://${did}/app.bsky.feed.post/${rkey}`;
       docs.push({
+        type: "search",
+        queryIdx: queryIdx,
         timestamp: timestamp,
         atURL: atURL,
-        idx: idx,
+        itemIdx: itemIdx,
         total: response.length,
+        count: searchParams.count,
+        offset: searchParams.offset,
       });
     }
   }
   return docs;
 }
 
-function saveCursor(items) {
-  return "";
+function saveCursor(items, numQueries) {
+  // console.log("JSON.stringify(items, null, 2)", JSON.stringify(items, null, 2));
+  let subcursors = {};
+  for (let i = 0; i < numQueries; i++) {
+    subcursors[i] = { maxItemIdx: 0, empty: true };
+  }
+
+  const copyFields = [
+    "count",
+    "cursor",
+    "nextCursor",
+    "offset",
+    "total",
+    "type",
+  ];
+  for (let item of items) {
+    if (item.pin === true) {
+      continue;
+    }
+    let queryIdx = item.queryIdx;
+    let itemIdx = item.itemIdx;
+    subcursors[queryIdx].empty = false;
+    for (let field of copyFields) {
+      subcursors[queryIdx][field] = item[field];
+    }
+    subcursors[queryIdx].maxItemIdx = Math.max(
+      subcursors[queryIdx].maxItemIdx,
+      itemIdx
+    );
+  }
+
+  let cursors = [];
+  for (let i = 0; i < numQueries; i++) {
+    let subcursor = subcursors[i];
+    let nextCursor = null;
+    if (subcursor.empty === true) {
+      nextCursor = { type: "empty" };
+    } else if (subcursor.type === "search") {
+      nextCursor = {
+        type: "search",
+        offset: subcursor.offset + subcursor.maxItemIdx + 1,
+      };
+    } else if (subcursor.type === "user") {
+      let userNextCursor = null;
+      if (subcursor.maxItemIdx + 1 < subcursor.total) {
+        userNextCursor = subcursor.cursor;
+      } else {
+        userNextCursor = subcursor.nextCursor;
+      }
+      nextCursor = {
+        type: "user",
+        cursor: userNextCursor,
+      };
+    }
+    cursors.push(nextCursor);
+  }
+  console.log("subcursors", JSON.stringify(subcursors, null, 2));
+  console.log("cursors", JSON.stringify(cursors, null, 2));
+
+  let allTuples = [];
+  for (let cursor of cursors) {
+    let tuple = [];
+    switch (cursor["type"]) {
+      case "empty":
+        tuple = ["e"];
+        break;
+      case "search":
+        tuple = ["s", cursor["offset"]];
+        break;
+      case "user":
+        tuple = ["u", cursor["cursor"]];
+        break;
+      default:
+        console.warn(`Unknown cursor type ${cursor["type"]}`);
+        break;
+    }
+    allTuples.push(tuple);
+  }
+  let flatCursor = JSON.stringify(allTuples, null, 0);
+  console.log("flatCursor", flatCursor);
+
+  return flatCursor;
 }
 
 export async function getFeedSkeleton(request, env) {
@@ -153,18 +240,25 @@ export async function getFeedSkeleton(request, env) {
     session = await loginWithEnv(env);
   }
 
+  const numQueries = allQueries.length;
   let items = [];
-  for (let query of allQueries) {
+  for (let queryIdx = 0; queryIdx < numQueries; queryIdx++) {
+    let query = allQueries[queryIdx];
     console.log(`query: ${JSON.stringify(query)}`);
     if (query.type === "search") {
-      let response = await searchPost(query.value);
+      let searchParams = {
+        offset: 0,
+        count: 30,
+      };
+      let response = await searchPost(query.value, searchParams);
       if (response !== null) {
-        items.push(...fromSearch(response));
+        items.push(...fromSearch(queryIdx, response, searchParams));
       }
     } else if (query.type === "user") {
+      let cursor = null;
       let response = await fetchUser(session, query.value);
       if (response !== null) {
-        items.push(...fromUser(response));
+        items.push(...fromUser(queryIdx, response, { cursor: cursor }));
       }
     } else if (query.type === "post" && showPins) {
       let response = await staticPost(query.value);
@@ -181,8 +275,7 @@ export async function getFeedSkeleton(request, env) {
     a.timestamp === b.timestamp ? 0 : a.timestamp < b.timestamp ? -1 : 1
   );
 
-  // TODO apply this after adding pagination support
-  // items = items.slice(0, limit);
+  items = items.slice(0, limit);
 
   let feed = [];
   for (let item of items) {
@@ -190,7 +283,7 @@ export async function getFeedSkeleton(request, env) {
   }
   console.log("feed.length", feed.length);
 
-  let cursor = saveCursor(items);
+  let cursor = saveCursor(items, numQueries);
   return jsonResponse({ feed: feed, cursor: cursor });
 }
 
