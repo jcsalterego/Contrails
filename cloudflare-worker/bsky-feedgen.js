@@ -175,8 +175,6 @@ function saveCursor(items, numQueries) {
     }
     cursors.push(nextCursor);
   }
-  console.log("subcursors", JSON.stringify(subcursors, null, 2));
-  console.log("cursors", JSON.stringify(cursors, null, 2));
 
   let allTuples = [];
   for (let cursor of cursors) {
@@ -198,8 +196,6 @@ function saveCursor(items, numQueries) {
     allTuples.push(tuple);
   }
   let flatCursor = JSON.stringify(allTuples, null, 0);
-  console.log("flatCursor", flatCursor);
-
   return flatCursor;
 }
 
@@ -260,7 +256,6 @@ export async function getFeedSkeleton(request, env) {
 
   const numQueries = allQueries.length;
   let origCursor = loadCursor(cursorParam);
-  console.log("origCursor", JSON.stringify(origCursor, null, 2));
   if (origCursor.length === 0) {
     origCursor = null;
   } else if (origCursor.length !== numQueries) {
@@ -304,7 +299,6 @@ export async function getFeedSkeleton(request, env) {
     }
   }
 
-  console.log("items.length", items.length);
   items = items.toSorted((b, a) =>
     a.timestamp === b.timestamp ? 0 : a.timestamp < b.timestamp ? -1 : 1
   );
@@ -315,7 +309,6 @@ export async function getFeedSkeleton(request, env) {
   for (let item of items) {
     feed.push({ post: item.atURL });
   }
-  console.log("feed.length", feed.length);
 
   let cursor = saveCursor(items, numQueries);
   return jsonResponse({ feed: feed, cursor: cursor });
@@ -391,7 +384,6 @@ function buildQueries(allTerms, cursorParam = null) {
 }
 
 async function fetchUser(session, user, cursor = null) {
-  console.log("user", user);
   let response = await appBskyFeedGetAuthorFeed(session, user, cursor);
   if (response !== null) {
     return await response.json();
