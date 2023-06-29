@@ -266,7 +266,7 @@ export async function getFeedSkeleton(request, env) {
         items.push(...fromPost(response));
       }
     } else {
-      console.warn(`Unknown item type ${typedResponse.type}`);
+      console.warn(`Unknown item type ${query.type}`);
     }
   }
 
