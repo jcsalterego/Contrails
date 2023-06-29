@@ -203,6 +203,14 @@ function saveCursor(items, numQueries) {
   return flatCursor;
 }
 
+function objSafeGet(doc, field, defaultValue) {
+  let value = defaultValue;
+  if (doc !== undefined && doc !== null && doc[field] !== undefined) {
+    value = doc[field];
+  }
+  return value;
+}
+
 export async function getFeedSkeleton(request, env) {
   const url = new URL(request.url);
   const feedAtUrl = url.searchParams.get("feed");
@@ -253,7 +261,9 @@ export async function getFeedSkeleton(request, env) {
   const numQueries = allQueries.length;
   let origCursor = loadCursor(cursorParam);
   console.log("origCursor", JSON.stringify(origCursor, null, 2));
-  if (origCursor.length !== numQueries) {
+  if (origCursor.length === 0) {
+    origCursor = null;
+  } else if (origCursor.length !== numQueries) {
     console.warn("Dropping cursor because it has the wrong number of queries");
     origCursor = null;
   }
@@ -267,7 +277,7 @@ export async function getFeedSkeleton(request, env) {
     }
     console.log(`query: ${JSON.stringify(query)}`);
     if (query.type === "search") {
-      let offset = queryCursor === null ? 0 : queryCursor.offset;
+      let offset = objSafeGet(queryCursor, "offset", 0);
       let searchParams = {
         offset: offset,
         count: 30,
@@ -277,8 +287,8 @@ export async function getFeedSkeleton(request, env) {
         items.push(...fromSearch(queryIdx, response, searchParams));
       }
     } else if (query.type === "user") {
-      let cursor = queryCursor === null ? null : queryCursor.cursor;
-      let response = await fetchUser(session, query.value);
+      let cursor = objSafeGet(queryCursor, "cursor", null);
+      let response = await fetchUser(session, query.value, cursor);
       if (response !== null) {
         items.push(...fromUser(queryIdx, response, { cursor: cursor }));
       }
@@ -380,9 +390,9 @@ function buildQueries(allTerms, cursorParam = null) {
   return orderedQueries;
 }
 
-async function fetchUser(session, user) {
+async function fetchUser(session, user, cursor = null) {
   console.log("user", user);
-  let response = await appBskyFeedGetAuthorFeed(session, user);
+  let response = await appBskyFeedGetAuthorFeed(session, user, cursor);
   if (response !== null) {
     return await response.json();
   } else {
