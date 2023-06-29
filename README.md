@@ -8,7 +8,7 @@ Fork or copy the repository and edit `CONFIG.md` to define your feed generator.
 
 Deploy right from [GitHub Actions](https://github.com/features/actions) to [Cloudflare Workers](https://workers.cloudflare.com).
 
-The current release is [**0.1.0**](https://github.com/jcsalterego/Contrails/releases/latest).
+The current release is [**0.2.0**](https://github.com/jcsalterego/Contrails/releases/latest).
 
 ## Requirements
 
@@ -43,6 +43,10 @@ In the event you'd like to pull in the latest changes into a fork of Contrails, 
 [GitHub Docs: Syncing a fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork)
 
 ## Changelog
+
+### 0.2.0
+
+* Pagination
 
 ### 0.1.0
 
