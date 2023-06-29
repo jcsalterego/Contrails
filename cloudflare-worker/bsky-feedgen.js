@@ -29,7 +29,7 @@ export async function feedGeneratorWellKnown(request) {
 
 async function staticPost(value) {
   return {
-    feed: [{post: value}],
+    feed: [{ post: value }],
   };
 }
 
@@ -241,13 +241,25 @@ export async function getFeedSkeleton(request, env) {
   }
 
   const numQueries = allQueries.length;
+  let origCursor = loadCursor(cursorParam);
+  console.log("origCursor", JSON.stringify(origCursor, null, 2));
+  if (origCursor.length !== numQueries) {
+    console.warn("Dropping cursor because it has the wrong number of queries");
+    origCursor = null;
+  }
+
   let items = [];
   for (let queryIdx = 0; queryIdx < numQueries; queryIdx++) {
     let query = allQueries[queryIdx];
+    let queryCursor = null;
+    if (origCursor !== null) {
+      queryCursor = origCursor[queryIdx];
+    }
     console.log(`query: ${JSON.stringify(query)}`);
     if (query.type === "search") {
+      let offset = queryCursor === null ? 0 : queryCursor.offset;
       let searchParams = {
-        offset: 0,
+        offset: offset,
         count: 30,
       };
       let response = await searchPost(query.value, searchParams);
@@ -255,15 +267,17 @@ export async function getFeedSkeleton(request, env) {
         items.push(...fromSearch(queryIdx, response, searchParams));
       }
     } else if (query.type === "user") {
-      let cursor = null;
+      let cursor = queryCursor === null ? null : queryCursor.cursor;
       let response = await fetchUser(session, query.value);
       if (response !== null) {
         items.push(...fromUser(queryIdx, response, { cursor: cursor }));
       }
-    } else if (query.type === "post" && showPins) {
-      let response = await staticPost(query.value);
-      if (response !== null) {
-        items.push(...fromPost(response));
+    } else if (query.type === "post") {
+      if (showPins) {
+        let response = await staticPost(query.value);
+        if (response !== null) {
+          items.push(...fromPost(response));
+        }
       }
     } else {
       console.warn(`Unknown item type ${query.type}`);
@@ -289,24 +303,27 @@ export async function getFeedSkeleton(request, env) {
 
 function loadCursor(cursorParam) {
   let cursors = [];
-  if (cursorParam !== null) {
-    let words = cursorParam.split(",");
-    for (let word of words) {
-      if (word === "_") {
-        // pinned post. continue
-      } else {
-        let parts = word.split(",");
-        if (parts.length === 2) {
-          let page = parts[0];
-          let offset = parts[1];
-          cursors.push({
-            page: page,
-            offset: offset,
-          });
-        } else {
-          // bail
-          return [];
+  if (cursorParam !== undefined && cursorParam !== null) {
+    let tuples = null;
+    try {
+      tuples = JSON.parse(cursorParam);
+    } catch (e) {}
+    if (Array.isArray(tuples)) {
+      for (let tuple of tuples) {
+        let cursor = null;
+        if (Array.isArray(tuple)) {
+          let type = tuple[0];
+          if (type === "s") {
+            cursor = { type: "search", offset: tuple[1] };
+          } else if (type === "u") {
+            cursor = { type: "user", cursor: tuple[1] };
+          } else if (type === "e") {
+            cursor = { type: "empty" };
+          } else {
+            console.warn(`Unknown cursor type ${type}`);
+          }
         }
+        cursors.push(cursor);
       }
     }
   }
