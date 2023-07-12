@@ -48,7 +48,7 @@ function fromPost(response) {
   return docs;
 }
 
-function fromUser(queryIdx, response, params) {
+function fromUser(query, queryIdx, response, params) {
   let docs = [];
   let feed = response.feed;
   if (Array.isArray(feed)) {
@@ -57,12 +57,10 @@ function fromUser(queryIdx, response, params) {
     for (let itemIdx = 0; itemIdx < feed.length; itemIdx++) {
       let feedItem = feed[itemIdx];
       if (feedItem.post !== undefined && feedItem.post.record !== undefined) {
-        // TODO allow replies
-        if (feedItem.reply !== undefined) {
+        if (feedItem.reply !== undefined && query.includeReplies !== true) {
           continue;
         }
-        // TODO allow reposts
-        if (feedItem.reason !== undefined) {
+        if (feedItem.reason !== undefined && query.includeReposts !== true) {
           continue;
         }
         filteredFeed.push(feedItem);
@@ -74,10 +72,21 @@ function fromUser(queryIdx, response, params) {
     let nextCursor = response.cursor;
     for (let itemIdx = 0; itemIdx < feed.length; itemIdx++) {
       let feedItem = feed[itemIdx];
+      let postReason = null;
       if (feedItem.post !== undefined && feedItem.post.record !== undefined) {
-        let timestampStr = feedItem.post.record.createdAt;
-        let timestamp = new Date(timestampStr).valueOf() * 1000000;
         let atURL = feedItem.post.uri;
+        let timestamp = null;
+        if (feedItem.reason !== undefined) {
+          let timestampStr = feedItem.reason.indexedAt;
+          timestamp = new Date(timestampStr).valueOf() * 1000000;
+          postReason = {
+            $type: "app.bsky.feed.defs#skeletonReasonRepost",
+            // TODO: add repost URI field
+          };
+        } else {
+          let timestampStr = feedItem.post.record.createdAt;
+          timestamp = new Date(timestampStr).valueOf() * 1000000;
+        }
 
         docs.push({
           type: "user",
@@ -88,6 +97,7 @@ function fromUser(queryIdx, response, params) {
           total: feed.length,
           cursor: cursor,
           nextCursor: nextCursor,
+          postReason: postReason,
         });
       }
     }
@@ -285,7 +295,7 @@ export async function getFeedSkeleton(request, env) {
       let cursor = objSafeGet(queryCursor, "cursor", null);
       let response = await fetchUser(session, query.value, cursor);
       if (response !== null) {
-        items.push(...fromUser(queryIdx, response, { cursor: cursor }));
+        items.push(...fromUser(query, queryIdx, response, { cursor: cursor }));
       }
     } else if (query.type === "post") {
       if (showPins) {
@@ -307,7 +317,12 @@ export async function getFeedSkeleton(request, env) {
 
   let feed = [];
   for (let item of items) {
-    feed.push({ post: item.atURL });
+    let postReason = item.postReason;
+    let feedItem = { post: item.atURL };
+    if (postReason !== null) {
+      // TODO add feedItem["reason"]
+    }
+    feed.push(feedItem);
   }
 
   let cursor = saveCursor(items, numQueries);
@@ -361,11 +376,25 @@ function buildQueries(allTerms, cursorParam = null) {
           value: term,
         });
       } else {
-        let userDid = term.replace("at://", "");
+        let userDid = null;
+        let includeReplies = false;
+        let includeReposts = false;
+        let words = term.split(" ");
+        for (let word of words) {
+          if (word.indexOf("at://") > -1) {
+            userDid = word.replace("at://", "");
+          } else if (word === "+replies") {
+            includeReplies = true;
+          } else if (word === "+reposts") {
+            includeReposts = true;
+          }
+        }
         queries.push({
           type: "user",
           value: userDid,
           cursor: cursor,
+          includeReplies: includeReplies,
+          includeReposts: includeReposts,
         });
       }
     } else {

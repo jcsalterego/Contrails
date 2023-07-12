@@ -9,7 +9,7 @@ import requests
 
 LIST_ITEM_REGEX = re.compile(r"^- ")
 POST_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/(.+?)/post/([a-z0-9]+)")
-PROFILE_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/([^/]+)")
+PROFILE_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/([^/ ]+)( .+)?$")
 
 
 def resolve_handles(handles):
@@ -30,16 +30,36 @@ def render_search_terms(search_terms):
     # strip out list item markers
     terms = [re.compile(LIST_ITEM_REGEX).sub("", term) for term in search_terms]
 
+    all_handles = {}
+
     # collect handles and pins
     for term in terms:
         post_matches = POST_REGEX.match(term)
         profile_matches = PROFILE_REGEX.match(term)
         if post_matches:
-            handle = post_matches.group(1)
+            handle = post_matches.group(1).lower()
             handles.add(handle)
         if profile_matches:
-            handle = profile_matches.group(1)
+            handle = profile_matches.group(1).lower()
             handles.add(handle)
+            if handle not in all_handles:
+                all_handles[handle] = {
+                    "handle": handle,
+                    "replies": False,
+                    "reposts": False,
+                }
+            flags = profile_matches.group(2)
+            if flags is not None:
+                words = flags.split(" ")
+                for word in words:
+                    word = word.strip().lower()
+                    if word:
+                        if word == "+replies":
+                            all_handles[handle]["replies"] = True
+                        elif word == "+reposts":
+                            all_handles[handle]["reposts"] = True
+                        else:
+                            print(f"WARN: Unknown flag {word}", file=sys.stderr)
 
     # resolve handles
     dids = resolve_handles(handles)
@@ -62,7 +82,14 @@ def render_search_terms(search_terms):
             did = dids[handle]
             if did:
                 at_url = f"at://{did}"
-                rendered_terms.append(at_url)
+                words = [at_url]
+                flags = all_handles[handle]
+                if flags["replies"]:
+                    words.append("+replies")
+                if flags["reposts"]:
+                    words.append("+reposts")
+                flat = " ".join(words)
+                rendered_terms.append(flat)
             else:
                 print(f"WARN: Failed to resolve handle {handle}", file=sys.stderr)
         else:
