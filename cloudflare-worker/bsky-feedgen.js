@@ -7,6 +7,7 @@ import { loginWithEnv } from "./bsky-auth";
 
 // let's be nice
 const DEFAULT_LIMIT = 40;
+const QUOTED_PHRASE_REGEX = /"([^"]+)"/g;
 
 export async function feedGeneratorWellKnown(request) {
   let host = request.headers.get("Host");
@@ -105,11 +106,40 @@ function fromUser(query, queryIdx, response, params) {
   return docs;
 }
 
-function fromSearch(queryIdx, response, searchParams) {
+/**
+ * Returns a set of normalized (lowercase) quoted phrases
+ * @param query
+ * @returns {any[]}
+ */
+function getNormalizedQuotedPhrases(query) {
+  let phrases = new Set();
+  let match;
+  while ((match = QUOTED_PHRASE_REGEX.exec(query.value)) !== null) {
+    phrases.add(match[1].toLowerCase());
+  }
+  return Array.from(phrases);
+}
+
+function fromSearch(query, queryIdx, response, searchParams) {
   let docs = [];
+  let normalizedQuotedPhrases = getNormalizedQuotedPhrases(query);
   if (Array.isArray(response)) {
     for (let itemIdx = 0; itemIdx < response.length; itemIdx++) {
       let searchResult = response[itemIdx];
+      if (normalizedQuotedPhrases.length > 0) {
+        // perform a case-insensitive search for all quoted phrases
+        let matches = true;
+        let normalizedPostText = searchResult.post.text.toLowerCase();
+        for (let phrase of normalizedQuotedPhrases) {
+          if (!normalizedPostText.includes(phrase)) {
+            matches = false;
+            break;
+          }
+        }
+        if (!matches) {
+          continue;
+        }
+      }
       let did = searchResult.user.did;
       let rkey = searchResult.tid.split("/").slice(-1)[0];
       let timestamp = searchResult.post.createdAt;
@@ -289,7 +319,7 @@ export async function getFeedSkeleton(request, env) {
       };
       let response = await searchPost(query.value, searchParams);
       if (response !== null) {
-        items.push(...fromSearch(queryIdx, response, searchParams));
+        items.push(...fromSearch(query, queryIdx, response, searchParams));
       }
     } else if (query.type === "user") {
       let cursor = objSafeGet(queryCursor, "cursor", null);
