@@ -25,12 +25,10 @@ Cute animals feed
 > - Users: links such as `https://bsky.app/profile/why.bsky.team` will pull in the user's posts. To include replies and reposts, you can add the following flags: `https://bsky.app/profile/why.bsky.team +replies +reposts`.
 > - Pinned posts: links such as `https://bsky.app/profile/saddymayo.bsky.social/post/3jxju2wwap22e` will pin at the top of the feed. One link per line, please.
 
+- cloudflare
 - https://bsky.app/profile/saddymayo.bsky.social/post/3jxju2wwap22e
-- cats
-- dogs
-- penguins
-- red pandas
-- quokkas
+- https://bsky.app/profile/rhoml.com
+- https://bsky.app/profile/eastdakota.com
 
 # safeMode
 
