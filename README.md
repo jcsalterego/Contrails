@@ -46,6 +46,10 @@ In the event you'd like to pull in the latest changes into a fork of Contrails, 
 
 ## Changelog
 
+### 0.2.2
+
+* FIX: Quoted phrases such as `"blue sky"` work again. This will require case-insensitive matches, e.g. `blue sky`, `Blue Sky` or `BLUE SKY`.
+
 ### 0.2.1
 
 * `+reposts` and `+replies` support. Note: Reposts will not be attributed ("reposted by User").
