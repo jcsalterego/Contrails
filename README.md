@@ -8,7 +8,7 @@ Fork or copy the repository and edit `CONFIG.md` to define your feed generator.
 
 Deploy right from [GitHub Actions](https://github.com/features/actions) to [Cloudflare Workers](https://workers.cloudflare.com).
 
-The current release is [**0.2.1**](https://github.com/jcsalterego/Contrails/releases/latest).
+The current release is [**0.2.2**](https://github.com/jcsalterego/Contrails/releases/latest).
 
 ## Requirements
 
