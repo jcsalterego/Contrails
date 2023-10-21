@@ -46,9 +46,13 @@ In the event you'd like to pull in the latest changes into a fork of Contrails, 
 
 ## Changelog
 
+### 0.2.4
+
+* `denyList` support. [#13](https://github.com/jcsalterego/Contrails/issues/13)
+
 ### 0.2.3
 
-Fix bug in publishFeedGenerator. [#19](https://github.com/jcsalterego/Contrails/issues/19)
+* FIX: publishFeedGenerator threw an error. [#19](https://github.com/jcsalterego/Contrails/issues/19)
 
 ### 0.2.2
 
