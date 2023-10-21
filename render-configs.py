@@ -11,6 +11,11 @@ LIST_ITEM_REGEX = re.compile(r"^- ")
 POST_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/(.+?)/post/([a-z0-9]+)")
 PROFILE_REGEX = re.compile(r"^.*[\./]bsky\.app/profile/([^/ ]+)( .+)?$")
 
+LIST_KEYS = [
+    "searchTerms",
+    "denyList",
+]
+
 
 def resolve_handles(handles):
     dids = {}
@@ -98,6 +103,25 @@ def render_search_terms(search_terms):
     return rendered_terms
 
 
+def render_dids_list(user_list):
+    dids = set()
+    handles = set()
+    dids_or_users = [
+        re.compile(LIST_ITEM_REGEX).sub("", term)
+        for term in user_list
+    ]
+    for did_or_user in dids_or_users:
+        if did_or_user.startswith("did:"):
+            dids.add(did_or_user)
+        else:
+            if did_or_user.startswith("@"):
+                did_or_user = did_or_user[1:]
+            handles.add(did_or_user)
+    if len(handles) > 0:
+        handle_lookup = resolve_handles(handles)
+        dids.update(handle_lookup.values())
+    return list(dids)
+
 def parse_config(dirname, markdown_contents):
     config = {}
     sections = markdown_contents.split("\n# ")
@@ -115,7 +139,7 @@ def parse_config(dirname, markdown_contents):
 
         config[section] = lines
 
-    flat_keys = [key for key in config.keys() if key != "searchTerms"]
+    flat_keys = [key for key in config.keys() if key not in LIST_KEYS]
     for key in flat_keys:
         config[key] = " ".join(config[key])
     if "searchTerms" in config:
@@ -145,6 +169,8 @@ def parse_config(dirname, markdown_contents):
     else:
         # for legacy support, if the section is missing, set to True
         config["safeMode"] = True
+    if "denyList" in config:
+        config["denyList"] = render_dids_list(config["denyList"])
 
     return config
 
