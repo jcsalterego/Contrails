@@ -280,6 +280,11 @@ export async function getFeedSkeleton(request, env) {
     console.warn(`Feed ID ${feedId} has no safeMode`);
     config.safeMode = true;
   }
+  if (config.denyList === undefined) {
+    config.denyList = new Set();
+  } else {
+    config.denyList = new Set(config.denyList);
+  }
   resetFetchCount(); // for long-lived processes (local)
   setSafeMode(config.safeMode);
 
@@ -342,6 +347,13 @@ export async function getFeedSkeleton(request, env) {
   items = items.toSorted((b, a) =>
     a.timestamp === b.timestamp ? 0 : a.timestamp < b.timestamp ? -1 : 1
   );
+
+  if (config.denyList.size > 0) {
+    items = items.filter((item) => {
+      let did = item.atURL.split("/")[2];
+      return !config.denyList.has(did);
+    });
+  }
 
   items = items.slice(0, limit);
 

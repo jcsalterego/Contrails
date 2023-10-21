@@ -11,6 +11,7 @@ export const CONFIGS = {
       "red pandas",
       "quokkas"
     ],
+    "denyList": [],
     "safeMode": true,
     "avatar": "avatar.png",
     "isEnabled": true
