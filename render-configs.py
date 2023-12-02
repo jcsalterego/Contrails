@@ -145,7 +145,7 @@ def parse_config(dirname, markdown_contents):
     if "searchTerms" in config:
         config["searchTerms"] = render_search_terms(config["searchTerms"])
     if "avatar" in config:
-        matches = re.compile("^.*\((.+)\)$").match(config["avatar"])
+        matches = re.compile(r"^.*\((.+)\)$").match(config["avatar"])
         if matches:
             config["avatar"] = os.path.join(dirname, matches.group(1))
     if "recordName" in config:
