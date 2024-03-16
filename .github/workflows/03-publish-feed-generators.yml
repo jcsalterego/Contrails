@@ -33,7 +33,7 @@ jobs:
       - name: Render Config
         run: |
           python render-configs.py
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
       - name: Publish Feed Generators
         run: |
           cd feed-generator/

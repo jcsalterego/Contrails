@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import { AtpAgent, BlobRef } from '@atproto/api'
+import {AtpAgent} from '@atproto/api'
 
 const run = async () => {
   dotenv.config()
@@ -11,14 +11,6 @@ const run = async () => {
   // only update this if in a test environment
   const agent = new AtpAgent({ service: 'https://bsky.social' })
   await agent.login({ identifier: handle, password })
-
-  try {
-    await agent.api.app.bsky.feed.describeFeedGenerator()
-  } catch (err) {
-    throw new Error(
-      'The bluesky server is not ready to accept published custom feeds yet',
-    )
-  }
 
   let record = {
     repo: agent.session?.did ?? '',
